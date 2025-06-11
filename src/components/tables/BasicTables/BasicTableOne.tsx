@@ -20,9 +20,9 @@ interface Station {
 }
 
 const initialStations: Station[] = [
-  { id: 1, name: "Trạm Trung Tâm", location: "21.0285, 105.8542", status: "Active" },
-  { id: 2, name: "Trạm Quận 1", location: "10.7769, 106.7009", status: "Inactive" },
-  { id: 3, name: "Trạm Quận 2", location: "10.7872, 106.7498", status: "Active" },
+  { id: 1, name: "Trạm Trung Tâm RD", location: "21.0285, 105.8542", status: "Active" },
+  { id: 2, name: "Trạm Ban Quản Lý Khu CNC ", location: "10.7769, 106.7009", status: "Inactive" },
+  { id: 3, name: "Trạm Vườn Ươm Doanh Nghiệp", location: "10.7872, 106.7498", status: "Active" },
 ];
 
 export default function BasicTableOne() {
