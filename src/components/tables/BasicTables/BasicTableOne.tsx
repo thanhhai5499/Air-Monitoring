@@ -50,7 +50,7 @@ export default function BasicTableOne() {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-6 w-full">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-2xl font-bold text-gray-800">Quản lý tài khoản</h3>
+        <h3 className="text-2xl font-bold text-gray-800">Quản lý trạm</h3>
         <button
           type="button"
           onClick={() => {
@@ -122,7 +122,7 @@ export default function BasicTableOne() {
       </div>
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} className="max-w-[500px] p-6">
         <div className="flex flex-col gap-6">
-          <h4 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Cập nhật trạm</h4>
+          <h4 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Thêm trạm mới</h4>
           <div>
             <Label htmlFor="name">Tên trạm</Label>
             <Input
@@ -169,7 +169,7 @@ export default function BasicTableOne() {
               onClick={handleUpdate}
               className="px-6 py-2 rounded-lg bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors"
             >
-              Cập Nhật
+              Thêm mới trạm
             </button>
           </div>
         </div>
