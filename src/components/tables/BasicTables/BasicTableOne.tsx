@@ -29,9 +29,11 @@ export default function BasicTableOne() {
   const [stations, setStations] = useState<Station[]>(initialStations);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStation, setEditingStation] = useState<Station | null>(null);
+  const [isEdit, setIsEdit] = useState(false);
 
   const handleRowClick = (station: Station) => {
     setEditingStation(station);
+    setIsEdit(true);
     setModalOpen(true);
   };
 
@@ -43,7 +45,11 @@ export default function BasicTableOne() {
 
   const handleUpdate = () => {
     if (!editingStation) return;
-    setStations((prev) => prev.map((s) => (s.id === editingStation.id ? editingStation : s)));
+    if (isEdit) {
+      setStations((prev) => prev.map((s) => (s.id === editingStation.id ? editingStation : s)));
+    } else {
+      setStations((prev) => [...prev, { ...editingStation, id: Date.now() }]);
+    }
     setModalOpen(false);
   };
 
@@ -55,6 +61,7 @@ export default function BasicTableOne() {
           type="button"
           onClick={() => {
             setEditingStation({ id: Date.now(), name: '', location: '', status: 'Active' });
+            setIsEdit(false);
             setModalOpen(true);
           }}
           className="px-5 py-2 rounded-md bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors text-base"
@@ -122,7 +129,9 @@ export default function BasicTableOne() {
       </div>
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} className="max-w-[500px] p-6">
         <div className="flex flex-col gap-6">
-          <h4 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Thêm trạm mới</h4>
+          <h4 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+            {isEdit ? 'Cập nhật trạm' : 'Thêm trạm mới'}
+          </h4>
           <div>
             <Label htmlFor="name">Tên trạm</Label>
             <Input
@@ -169,7 +178,7 @@ export default function BasicTableOne() {
               onClick={handleUpdate}
               className="px-6 py-2 rounded-lg bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors"
             >
-              Thêm mới trạm
+              {isEdit ? 'Cập nhật' : 'Thêm mới'}
             </button>
           </div>
         </div>
