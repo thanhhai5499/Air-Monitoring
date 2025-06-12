@@ -22,16 +22,8 @@ RUN chmod -R 755 node_modules/.bin
 RUN /bin/bash -c "npm run build"
 
 # Production stage
-FROM nginx:alpine
-
-# Copy built assets from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expose port 80
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build /app .
 EXPOSE 3000
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"] 
+CMD ["npm", "run", "preview"] 
