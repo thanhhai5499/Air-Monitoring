@@ -15,4 +15,7 @@ export default defineConfig({
       },
     }),
   ],
+  preview: {
+    allowedHosts: ['aiot-shtplabs.com', 'www.aiot-shtplabs.com']
+  }
 });
