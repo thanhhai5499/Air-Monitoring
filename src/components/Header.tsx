@@ -58,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({
     };
 
     return (
-        <header className="bg-white shadow-sm border-b border-gray-200">
+        <header className="bg-white shadow-sm">
             <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center">
                     {/* Mobile menu button */}
@@ -80,6 +80,16 @@ const Header: React.FC<HeaderProps> = ({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
+                </div>
+
+                {/* Center title */}
+                <div className="flex-1 text-center">
+                    <h1 className="text-lg font-bold text-black-600 hidden sm:block">
+                        PHẦN MỀM HIỂN THỊ THÔNG SỐ DO TIA UV VÀ BỤI MỊN
+                    </h1>
+                    <h1 className="text-sm font-bold text-black-600 sm:hidden">
+                        ĐO THÔNG SỐ TIA UV & BỤI MỊN
+                    </h1>
                 </div>
 
                 <div className="flex items-center space-x-4">

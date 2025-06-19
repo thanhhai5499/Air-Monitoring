@@ -4,6 +4,8 @@ import Login from './AuthPages/Login';
 import Register from './AuthPages/Register';
 import Dashboard from './Pages/Dashboard';
 import Statistics from './Pages/Statistics';
+import Reports from './Pages/Reports';
+import StationManagement from './Pages/StationManagement';
 import NotFound from './Pages/NotFound';
 import ProtectedRoute from './utils/ProtectedRoute';
 
@@ -27,6 +29,18 @@ const AppRouter: React.FC = () => {
             <Route path="/statistics" element={
                 <ProtectedRoute>
                     <Statistics />
+                </ProtectedRoute>
+            } />
+
+            <Route path="/reports" element={
+                <ProtectedRoute>
+                    <Reports />
+                </ProtectedRoute>
+            } />
+
+            <Route path="/stations" element={
+                <ProtectedRoute>
+                    <StationManagement />
                 </ProtectedRoute>
             } />
 

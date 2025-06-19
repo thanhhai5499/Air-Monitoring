@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 } w-64`}>
 
                 {/* Logo Section */}
-                <div className="flex items-center justify-center h-16 bg-white border-b border-gray-200">
+                <div className="flex items-center justify-center h-16 bg-white">
                     <div className="flex items-center">
                         <img
                             src="/images/logo1.png"
@@ -125,10 +125,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     onClick={() => {
                                         if (item.path) {
                                             navigate(item.path);
-                                            // Close mobile sidebar after navigation
+                                            // Close mobile sidebar after navigation, but keep desktop collapsed state
                                             if (window.innerWidth < 1024) {
                                                 setSidebarOpen(false);
                                             }
+                                            // Don't change collapsed state on desktop when clicking menu items
                                         }
                                     }}
                                     className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out ${isActive(item.path)

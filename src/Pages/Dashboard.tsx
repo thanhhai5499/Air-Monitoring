@@ -3,25 +3,7 @@ import Layout from '../components/Layout';
 import MapComponent from '../components/MapComponent';
 import StationSelector from '../components/StationSelector';
 import { mockStations } from '../data/mockStations';
-
-// Interface cho dữ liệu trạm
-interface StationData {
-    id: string;
-    name: string;
-    coordinates: { lat: number; lng: number };
-    airQuality: {
-        uv: number | null;
-        pm25: number | null;
-        pm1_0: number | null;
-        uvTrend?: number;
-        pm25Trend?: number;
-        pm1_0Trend?: number;
-    };
-    battery?: number;
-    status: 'online' | 'offline' | 'maintenance';
-    address?: string;
-    lastUpdated?: string;
-}
+import type { StationData } from '../types/station';
 
 interface DashboardProps {
     stationData?: StationData;
@@ -69,40 +51,44 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
 
     return (
         <Layout>
-            <div className="container mx-auto px-6 py-8">
+            <div className="container mx-auto px-5 py-5">
                 {/* Average Air Quality Cards */}
-                <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Chỉ Số Không Khí</h2>
+                <div className="mb-4">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-1">Chỉ Số Không Khí</h2>
                     <p className="text-gray-600">Dữ liệu trung bình từ {stations.length} trạm quan trắc</p>
                 </div>
-                <div className="grid gap-6 md:grid-cols-3 mb-8">
+                <div className="grid gap-4 md:grid-cols-3 mb-8">
                     {/* UV Index Card */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                         <div className="flex items-start justify-between">
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-1">UV</h3>
-                                <p className="text-xs text-gray-500 mb-3">UV Index</p>
+                                <h3 className="text-base font-bold text-gray-900 mb-1">UV</h3>
+                                <p className="text-xs text-gray-500 mb-2">UV Index</p>
                                 <div className="flex items-end space-x-2">
-                                    <span className="text-2xl font-bold text-gray-900">
+                                    <span className="text-xl font-bold text-gray-900">
                                         {stations.length > 0 ? averages.uv.toFixed(1) : '--'}
                                     </span>
                                     <span className="text-xs text-gray-500 mb-1">Trung bình</span>
                                 </div>
                             </div>
-                            <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
-                                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                             </div>
                         </div>
-                        <div className="mt-4">
+                        <div className="mt-3">
                             <div className="flex justify-between text-xs text-gray-500 mb-1">
                                 <span>Thấp</span>
                                 <span>Cao</span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
                                 <div
-                                    className="bg-gradient-to-r from-green-400 to-red-500 h-2 rounded-full"
+                                    className={`h-1.5 rounded-full ${
+                                        averages.uv >= 8 ? 'bg-red-500' :
+                                        averages.uv >= 6 ? 'bg-yellow-500' :
+                                        'bg-blue-500'
+                                    }`}
                                     style={{ width: `${stations.length > 0 ? Math.min(averages.uv / 11 * 100, 100) : 0}%` }}
                                 ></div>
                             </div>
@@ -110,20 +96,20 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                     </div>
 
                     {/* PM1.0 Card */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                         <div className="flex items-start justify-between">
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-1">PM1.0</h3>
-                                <p className="text-xs text-gray-500 mb-3">PM1.0</p>
+                                <h3 className="text-base font-bold text-gray-900 mb-1">PM1.0</h3>
+                                <p className="text-xs text-gray-500 mb-2">PM1.0</p>
                                 <div className="flex items-end space-x-2">
-                                    <span className="text-2xl font-bold text-gray-900">
+                                    <span className="text-xl font-bold text-gray-900">
                                         {stations.length > 0 ? `${averages.pm1_0.toFixed(1)} μg/m³` : '-- μg/m³'}
                                     </span>
                                     <span className="text-xs text-gray-500 mb-1">Trung bình</span>
                                 </div>
                             </div>
-                            <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center">
-                                <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                            <div className="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center">
+                                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
                                     <circle cx="5" cy="5" r="2" />
                                     <circle cx="12" cy="3" r="1.5" />
                                     <circle cx="19" cy="6" r="2" />
@@ -137,14 +123,18 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                 </svg>
                             </div>
                         </div>
-                        <div className="mt-4">
+                        <div className="mt-3">
                             <div className="flex justify-between text-xs text-gray-500 mb-1">
                                 <span>Tốt</span>
                                 <span>Có hại</span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
                                 <div
-                                    className="bg-gradient-to-r from-green-400 to-red-500 h-2 rounded-full"
+                                    className={`h-1.5 rounded-full ${
+                                        averages.pm1_0 >= 50 ? 'bg-red-500' :
+                                        averages.pm1_0 >= 25 ? 'bg-yellow-500' :
+                                        'bg-green-500'
+                                    }`}
                                     style={{ width: `${stations.length > 0 ? Math.min(averages.pm1_0 / 100 * 100, 100) : 0}%` }}
                                 ></div>
                             </div>
@@ -152,20 +142,20 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                     </div>
 
                     {/* PM2.5 Card */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                         <div className="flex items-start justify-between">
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-1">PM2.5</h3>
-                                <p className="text-xs text-gray-500 mb-3">PM2.5</p>
+                                <h3 className="text-base font-bold text-gray-900 mb-1">PM2.5</h3>
+                                <p className="text-xs text-gray-500 mb-2">PM2.5</p>
                                 <div className="flex items-end space-x-2">
-                                    <span className="text-2xl font-bold text-gray-900">
+                                    <span className="text-xl font-bold text-gray-900">
                                         {stations.length > 0 ? `${averages.pm25.toFixed(1)} μg/m³` : '-- μg/m³'}
                                     </span>
                                     <span className="text-xs text-gray-500 mb-1">Trung bình</span>
                                 </div>
                             </div>
-                            <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center">
-                                <svg className="w-6 h-6 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                            <div className="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center">
+                                <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
                                     <circle cx="6" cy="6" r="1.5" />
                                     <circle cx="12" cy="4" r="1" />
                                     <circle cx="18" cy="7" r="1.5" />
@@ -178,14 +168,18 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                 </svg>
                             </div>
                         </div>
-                        <div className="mt-4">
+                        <div className="mt-3">
                             <div className="flex justify-between text-xs text-gray-500 mb-1">
                                 <span>Tốt</span>
                                 <span>Có hại</span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
                                 <div
-                                    className="bg-gradient-to-r from-green-400 to-red-500 h-2 rounded-full"
+                                    className={`h-1.5 rounded-full ${
+                                        averages.pm25 >= 35 ? 'bg-red-500' :
+                                        averages.pm25 >= 15 ? 'bg-yellow-500' :
+                                        'bg-orange-500'
+                                    }`}
                                     style={{ width: `${stations.length > 0 ? Math.min(averages.pm25 / 55 * 100, 100) : 0}%` }}
                                 ></div>
                             </div>
@@ -199,10 +193,6 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                     <div className="lg:col-span-1 space-y-6">
                         {/* Station Selector */}
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                            <div className="p-4 border-b border-gray-200">
-                                <h3 className="text-lg font-semibold text-gray-900">Chọn trạm </h3>
-                                <p className="text-sm text-gray-600 mt-1">Chọn một trạm để xem chi tiết</p>
-                            </div>
                             <div className="p-4">
                                 <StationSelector
                                     stations={stations}
@@ -221,9 +211,9 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                 </div>
                                 <div className="p-3 space-y-2.5">
                                     {/* UV Index Card - Compact */}
-                                    <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-md p-2.5 border-l-3 border-l-yellow-500">
+                                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-md p-2.5 border-l-3 border-l-blue-500">
                                         <div className="flex items-center space-x-2.5">
-                                            <div className="w-7 h-7 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                                                 </svg>
@@ -247,7 +237,11 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                                 </div>
                                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
                                                     <div
-                                                        className="bg-gradient-to-r from-green-400 to-red-500 h-1.5 rounded-full"
+                                                        className={`h-1.5 rounded-full ${
+                                                            (currentStation.airQuality.uv || 0) >= 8 ? 'bg-red-500' :
+                                                            (currentStation.airQuality.uv || 0) >= 6 ? 'bg-yellow-500' :
+                                                            'bg-blue-500'
+                                                        }`}
                                                         style={{ width: `${Math.min((currentStation.airQuality.uv || 0) / 11 * 100, 100)}%` }}
                                                     ></div>
                                                 </div>
@@ -256,9 +250,9 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                     </div>
 
                                     {/* PM1.0 Card - Compact */}
-                                    <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-md p-2.5 border-l-3 border-l-purple-500">
+                                    <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-md p-2.5 border-l-3 border-l-green-500">
                                         <div className="flex items-center space-x-2.5">
-                                            <div className="w-7 h-7 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                                     <circle cx="5" cy="5" r="2" />
                                                     <circle cx="12" cy="3" r="1.5" />
@@ -292,7 +286,11 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                                 </div>
                                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
                                                     <div
-                                                        className="bg-gradient-to-r from-green-400 to-red-500 h-1.5 rounded-full"
+                                                        className={`h-1.5 rounded-full ${
+                                                            (currentStation.airQuality.pm1_0 || 0) >= 50 ? 'bg-red-500' :
+                                                            (currentStation.airQuality.pm1_0 || 0) >= 25 ? 'bg-yellow-500' :
+                                                            'bg-green-500'
+                                                        }`}
                                                         style={{ width: `${Math.min((currentStation.airQuality.pm1_0 || 0) / 100 * 100, 100)}%` }}
                                                     ></div>
                                                 </div>
@@ -336,7 +334,11 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                                 </div>
                                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
                                                     <div
-                                                        className="bg-gradient-to-r from-green-400 to-red-500 h-1.5 rounded-full"
+                                                        className={`h-1.5 rounded-full ${
+                                                            (currentStation.airQuality.pm25 || 0) >= 35 ? 'bg-red-500' :
+                                                            (currentStation.airQuality.pm25 || 0) >= 15 ? 'bg-yellow-500' :
+                                                            'bg-orange-500'
+                                                        }`}
                                                         style={{ width: `${Math.min((currentStation.airQuality.pm25 || 0) / 55 * 100, 100)}%` }}
                                                     ></div>
                                                 </div>
@@ -347,7 +349,11 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                     {/* Pin Card */}
                                     <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-md p-2.5 border-l-3 border-l-gray-400">
                                         <div className="flex items-center space-x-2.5">
-                                            <div className="w-7 h-7 bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                                (currentStation.battery || 0) >= 60 ? 'bg-green-500' :
+                                                (currentStation.battery || 0) >= 30 ? 'bg-orange-500' :
+                                                'bg-red-500'
+                                            }`}>
                                                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <rect x="3" y="7" width="15" height="10" rx="2" strokeWidth="2" />
                                                     <rect x="18" y="10" width="2" height="4" rx="1" strokeWidth="2" />
@@ -361,6 +367,16 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                                         {currentStation.battery !== undefined ? `${currentStation.battery}%` : '--'}
                                                     </span>
                                                 </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
+                                                    <div
+                                                        className={`h-1.5 rounded-full ${
+                                                            (currentStation.battery || 0) >= 60 ? 'bg-green-500' :
+                                                            (currentStation.battery || 0) >= 30 ? 'bg-orange-500' :
+                                                            'bg-red-500'
+                                                        }`}
+                                                        style={{ width: `${Math.min((currentStation.battery || 0), 100)}%` }}
+                                                    ></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -372,10 +388,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                     {/* Map */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                            <div className="mb-4">
+                            <div className="mb-3">
                                 <h3 className="text-lg font-semibold text-gray-900">Vị trí trạm</h3>
                                 <p className="text-sm text-gray-600 mt-1">
-                                    {currentStation ? `${currentStation.name} - ${currentStation.address}` : 'Chọn trạm để hiển thị'}
+                                    {currentStation ? currentStation.name : 'Chọn trạm để hiển thị'}
                                 </p>
                             </div>
                             <MapComponent

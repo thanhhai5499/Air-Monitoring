@@ -1,8 +1,8 @@
 export const mockStations = [
     {
-        id: 'station1',
-        name: 'Trạm Đại học Bách Khoa',
-        coordinates: { lat: 10.772028, lng: 106.657669 },
+        id: 'A001',
+        name: 'Trung Tâm R&D',
+        coordinates: { lat: 10.849702969756216, lng: 106.8025432124687 },
         airQuality: {
             uv: 6.2,
             pm25: 35.5,
@@ -12,14 +12,15 @@ export const mockStations = [
             pm1_0Trend: 0.5,
         },
         battery: 87,
-        status: 'online',
-        address: '268 Lý Thường Kiệt, Phường 14, Quận 10, TP.HCM',
+        status: 'online' as const,
         lastUpdated: '2024-06-01T10:00:00Z',
+        ipAddress: '192.168.1.101',
+        port: 8080,
     },
     {
-        id: 'station2',
-        name: 'Trạm Công viên Gia Định',
-        coordinates: { lat: 10.816797, lng: 106.678428 },
+        id: 'A002',
+        name: 'Ban Quản Lý Khu CNC',
+        coordinates: { lat: 10.849936754531079, lng: 106.7995109387296 },
         airQuality: {
             uv: 7.1,
             pm25: 40.2,
@@ -29,14 +30,15 @@ export const mockStations = [
             pm1_0Trend: -0.3,
         },
         battery: 73,
-        status: 'online',
-        address: 'Công viên Gia Định, Phường 9, Phú Nhuận, TP.HCM',
+        status: 'online' as const,
         lastUpdated: '2024-06-01T10:05:00Z',
+        ipAddress: '192.168.1.102',
+        port: 8080,
     },
     {
-        id: 'station3',
-        name: 'Trạm Nhà Văn hóa Thanh Niên',
-        coordinates: { lat: 10.781020, lng: 106.700821 },
+        id: 'A003',
+        name: 'Vườn Ươm Doanh Nghiệp',
+        coordinates: { lat: 10.840962267605256, lng: 106.81269879378907 },
         airQuality: {
             uv: 5.8,
             pm25: 30.9,
@@ -46,8 +48,10 @@ export const mockStations = [
             pm1_0Trend: 0.1,
         },
         battery: 65,
-        status: 'maintenance',
-        address: '4A Phạm Ngọc Thạch, Bến Nghé, Quận 1, TP.HCM',
+        status: 'maintenance' as const,
         lastUpdated: '2024-06-01T09:55:00Z',
+        ipAddress: '192.168.1.103',
+        port: 8081,
     },
+   
 ];

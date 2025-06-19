@@ -24,7 +24,6 @@ interface StationData {
     };
     battery?: number;
     status: 'online' | 'offline' | 'maintenance';
-    address?: string;
     lastUpdated?: string;
 }
 
@@ -285,7 +284,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ stationData, height = '384p
         );
     }
 
-    const { coordinates, name, airQuality, status, address, battery } = stationData;
+    const { coordinates, name, airQuality, status, battery } = stationData;
 
     return (
         <div style={{ height, width: '100%' }} className="rounded-lg overflow-hidden border border-gray-200">
@@ -310,7 +309,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ stationData, height = '384p
                         <div className="p-3 min-w-[280px]">
                             <div className="mb-3">
                                 <h3 className="font-semibold text-gray-900 text-sm mb-1">{name}</h3>
-                                {address && <p className="text-xs text-gray-500">{address}</p>}
                                 <div className="flex items-center mt-2">
                                     <span className={`inline-block w-2 h-2 rounded-full mr-2 ${status === 'online' ? 'bg-green-500' :
                                         status === 'offline' ? 'bg-red-500' : 'bg-yellow-500'

@@ -13,7 +13,6 @@ interface StationData {
         pm1_0Trend?: number;
     };
     status: 'online' | 'offline' | 'maintenance';
-    address?: string;
     lastUpdated?: string;
 }
 
@@ -60,20 +59,13 @@ const StationSelector: React.FC<StationSelectorProps> = ({
         <div className={`relative ${className}`} ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center space-x-2 w-full px-4 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-left"
+                className="flex items-center space-x-2 w-full px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-left shadow-sm h-[36px]"
             >
                 <div className="flex-1">
                     {selectedStation ? (
-                        <>
-                            <h3 className="font-semibold text-gray-900 text-sm">
-                                {selectedStation.name}
-                            </h3>
-                            {selectedStation.address && (
-                                <p className="text-xs text-gray-500 truncate mt-1">
-                                    {selectedStation.address}
-                                </p>
-                            )}
-                        </>
+                        <h3 className="font-semibold text-gray-900 text-sm">
+                            {selectedStation.name}
+                        </h3>
                     ) : (
                         <h3 className="font-medium text-gray-500 text-sm">
                             {placeholder}
@@ -118,11 +110,6 @@ const StationSelector: React.FC<StationSelectorProps> = ({
                                         <h4 className="font-medium text-gray-900 text-sm">
                                             {station.name}
                                         </h4>
-                                        {station.address && (
-                                            <p className="text-xs text-gray-500 mt-1 truncate">
-                                                {station.address}
-                                            </p>
-                                        )}
 
                                         {showAirQuality && (
                                             <div className="flex items-center space-x-4 mt-2 text-xs">

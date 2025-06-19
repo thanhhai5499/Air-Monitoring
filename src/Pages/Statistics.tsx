@@ -13,6 +13,11 @@ import {
     Filler,
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
+import type { StationChartData, StationData } from '../types/station';
+import { chartSampleData } from '../data/chartSampleData';
+import { getStationMonthlyData } from '../data/yearlyData';
+import StationSelector from '../components/StationSelector';
+import { mockStations } from '../data/mockStations';
 
 // Đăng ký các component Chart.js
 ChartJS.register(
@@ -27,167 +32,92 @@ ChartJS.register(
     Filler
 );
 
-// Empty data structure for yearly statistics - ready for API integration
-const yearlyData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-        {
-            label: 'UV Index',
-            data: Array(12).fill(0),
-            backgroundColor: '#3B82F6',
-            borderRadius: 4,
-        },
-        {
-            label: 'PM1.0',
-            data: Array(12).fill(0),
-            backgroundColor: '#10B981',
-            borderRadius: 4,
-        },
-        {
-            label: 'PM2.5',
-            data: Array(12).fill(0),
-            backgroundColor: '#F59E0B',
-            borderRadius: 4,
-        },
-    ],
-};
-
-// Sample data for daily trends with realistic values
-const dailyTrendData = {
-    Tram1: {
-        labels: Array.from({ length: 31 }, (_, i) => i + 1),
-        datasets: [
-            {
-                label: 'UV Index',
-                data: [8.2, 7.8, 7.5, 6.8, 8.1, 9.2, 8.7, 7.9, 8.5, 9.1, 8.8, 8.3, 7.6, 8.9, 9.3, 8.1, 7.7, 8.4, 8.8, 8.2, 7.9, 8.6, 9.0, 8.5, 8.3, 8.7, 8.1, 7.8, 8.4, 8.9, 8.6],
-                borderColor: '#3B82F6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-            },
-            {
-                label: 'PM1.0',
-                data: [55.3, 42.1, 41.8, 58.7, 44.2, 53.8, 48.1, 47.3, 56.8, 40.2, 58.1, 46.7, 45.9, 54.2, 57.8, 48.4, 43.6, 51.2, 55.9, 47.1, 49.8, 44.7, 42.3, 50.6, 56.4, 48.9, 45.2, 52.8, 58.2, 49.7, 46.1],
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-            },
-            {
-                label: 'PM2.5',
-                data: [32.1, 28.5, 18.3, 18.7, 24.2, 25.8, 22.1, 24.7, 26.3, 23.9, 31.2, 30.8, 26.4, 28.1, 34.2, 27.8, 26.5, 29.3, 32.7, 28.9, 30.1, 27.4, 25.8, 29.7, 31.5, 28.2, 26.9, 30.4, 32.8, 29.6, 27.3],
-                borderColor: '#F59E0B',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-            },
-        ],
-    },
-    Tram2: {
-        labels: Array.from({ length: 31 }, (_, i) => i + 1),
-        datasets: [
-            {
-                label: 'UV Index',
-                data: [7.8, 7.4, 7.1, 6.5, 7.7, 8.8, 8.3, 7.5, 8.1, 8.7, 8.4, 7.9, 7.2, 8.5, 8.9, 7.7, 7.3, 8.0, 8.4, 7.8, 7.5, 8.2, 8.6, 8.1, 7.9, 8.3, 7.7, 7.4, 8.0, 8.5, 8.2],
-                borderColor: '#3B82F6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-            },
-            {
-                label: 'PM1.0',
-                data: [51.9, 38.7, 38.4, 54.3, 40.8, 49.4, 44.7, 43.9, 52.4, 36.8, 53.7, 43.3, 42.5, 50.8, 53.4, 44.0, 40.2, 47.8, 51.5, 43.7, 46.4, 41.3, 38.9, 47.2, 52.0, 45.5, 41.8, 48.4, 53.8, 46.3, 42.7],
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-            },
-            {
-                label: 'PM2.5',
-                data: [29.8, 25.2, 15.9, 16.3, 21.8, 23.4, 19.7, 22.3, 24.9, 21.5, 28.8, 27.4, 23.0, 24.7, 30.8, 24.4, 23.1, 25.9, 29.3, 25.5, 26.7, 24.0, 22.4, 26.3, 28.1, 24.8, 23.5, 26.0, 29.4, 26.2, 23.9],
-                borderColor: '#F59E0B',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-            },
-        ],
-    },
-    Tram3: {
-        labels: Array.from({ length: 31 }, (_, i) => i + 1),
-        datasets: [
-            {
-                label: 'UV Index',
-                data: [8.6, 8.2, 7.9, 7.2, 8.5, 9.6, 9.1, 8.3, 8.9, 9.5, 9.2, 8.7, 8.0, 9.3, 9.7, 8.5, 8.1, 8.8, 9.2, 8.6, 8.3, 9.0, 9.4, 8.9, 8.7, 9.1, 8.5, 8.2, 8.8, 9.3, 9.0],
-                borderColor: '#3B82F6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-            },
-            {
-                label: 'PM1.0',
-                data: [58.7, 45.5, 45.2, 62.1, 47.6, 57.2, 51.5, 50.7, 60.2, 43.6, 61.5, 50.1, 49.3, 57.6, 61.2, 51.8, 47.0, 54.6, 59.3, 50.5, 53.2, 48.1, 45.7, 54.0, 59.8, 52.3, 48.6, 56.2, 61.6, 53.1, 49.5],
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-            },
-            {
-                label: 'PM2.5',
-                data: [34.4, 31.8, 20.7, 21.1, 26.6, 28.2, 24.5, 27.1, 28.7, 26.3, 33.6, 33.2, 28.8, 30.5, 36.6, 31.2, 29.9, 32.7, 36.1, 32.3, 33.5, 30.8, 29.2, 33.1, 34.9, 31.6, 30.3, 33.8, 36.2, 32.0, 30.7],
-                borderColor: '#F59E0B',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-            },
-        ],
-    },
-};
-
 const Statistics: React.FC = () => {
-    // Calculate average data from all stations
-    const calculateAverageData = () => {
-        const stations = Object.values(dailyTrendData);
-        const labels = dailyTrendData.Tram1.labels;
+    const [selectedStation, setSelectedStation] = useState<StationData | null>(mockStations[0]);
+    const [chartData, setChartData] = useState<any>(null);
+    const [yearlyChartData, setYearlyChartData] = useState<any>(null);
+    
+    const handleStationChange = (station: StationData) => setSelectedStation(station);
 
-        const averageDatasets = dailyTrendData.Tram1.datasets.map((_, datasetIndex) => {
-            const averageData = labels.map((_, dayIndex) => {
-                const sum = stations.reduce((acc, station) => {
-                    return acc + station.datasets[datasetIndex].data[dayIndex];
-                }, 0);
-                return Number((sum / stations.length).toFixed(1));
-            });
+    // Initialize chart data on component mount
+    useEffect(() => {
+        if (mockStations.length > 0) {
+            setSelectedStation(mockStations[0]);
+            // Generate initial chart data
+            setChartData(calculateSelectedStationData());
+            setYearlyChartData(calculateYearlyData());
+        }
+    }, []);
 
-            return {
-                ...dailyTrendData.Tram1.datasets[datasetIndex],
-                data: averageData
-            };
-        });
+    // Calculate data for selected station
+    const calculateSelectedStationData = () => {
+        if (!selectedStation) return { labels: [], datasets: [] };
+        
+        // Find matching station data in chartSampleData
+        const stationChartData = chartSampleData.find(station => station.id === selectedStation.id);
+        if (!stationChartData) return { labels: [], datasets: [] };
+
+        const labels = stationChartData.airQuality.uv.map((_, i) => i + 1);
+
+        const datasets = [
+            {
+                label: 'UV Index',
+                data: stationChartData.airQuality.uv,
+                borderColor: '#3B82F6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+            },
+            {
+                label: 'PM1.0',
+                data: stationChartData.airQuality.pm1_0,
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+            },
+            {
+                label: 'PM2.5',
+                data: stationChartData.airQuality.pm25,
+                borderColor: '#F59E0B',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+            },
+        ];
 
         return {
             labels,
-            datasets: averageDatasets
+            datasets
         };
     };
 
-    const averageChartData = calculateAverageData();
+    const selectedStationChartData = calculateSelectedStationData();
+
+    // Calculate yearly data for selected station
+    const calculateYearlyData = () => {
+        if (!selectedStation) return { labels: [], datasets: [] };
+        
+        // Get monthly data from the new yearly data file
+        const monthlyData = getStationMonthlyData(selectedStation.id);
+        if (!monthlyData) return { labels: [], datasets: [] };
+
+        return monthlyData;
+    };
+
+    // Update chart data when selected station changes
+    useEffect(() => {
+        if (selectedStation) {
+            setChartData(calculateSelectedStationData());
+            setYearlyChartData(calculateYearlyData());
+        }
+    }, [selectedStation]);
 
     // Chart options for yearly bar chart
     const yearlyChartOptions: any = {
@@ -389,9 +319,19 @@ const Statistics: React.FC = () => {
         <Layout>
             <div className="flex flex-col h-full">
                 {/* Compact Header */}
-                <div className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 flex-shrink-0">
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Thống kê chất lượng không khí</h1>
-                    <p className="text-gray-600 text-sm">Dữ liệu chi tiết về các chỉ số môi trường</p>
+                <div className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 flex-shrink-0 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Thống kê chất lượng không khí</h1>
+                        <p className="text-gray-600 text-sm">Dữ liệu chi tiết về các chỉ số môi trường</p>
+                    </div>
+                    <div className="min-w-[250px]">
+                        <StationSelector
+                            stations={mockStations}
+                            selectedStation={selectedStation}
+                            onStationChange={handleStationChange}
+                            placeholder="Chọn trạm để thống kê"
+                        />
+                    </div>
                 </div>
 
                 {/* Charts Container - 2x2 Grid layout */}
@@ -406,7 +346,7 @@ const Statistics: React.FC = () => {
                                     </h2>
                                     <div className="flex items-center gap-3 mt-1">
                                         <p className="text-xs text-gray-500">
-                                            Dữ liệu trung bình 3 chỉ số (UV, PM2.5, PM1.0) từ tất cả các trạm theo ngày
+                                            Dữ liệu 3 chỉ số (UV, PM2.5, PM1.0) của trạm {selectedStation?.name || 'được chọn'} theo ngày
                                         </p>
 
                                         {/* Legend moved to header */}
@@ -437,7 +377,7 @@ const Statistics: React.FC = () => {
                         </div>
                         <div className="p-3 sm:p-4">
                             <div className="w-full h-64 xl:h-80 overflow-hidden">
-                                <Line data={averageChartData} options={dailyChartOptions} />
+                                {chartData && <Line data={chartData} options={dailyChartOptions} />}
                             </div>
                         </div>
                     </div>
@@ -452,7 +392,7 @@ const Statistics: React.FC = () => {
                                     </h2>
                                     <div className="flex items-center gap-3 mt-1">
                                         <p className="text-xs text-gray-500">
-                                            Dữ liệu trung bình 3 chỉ số (UV, PM2.5, PM1.0) từ tất cả các trạm theo từng tháng
+                                            Dữ liệu 3 chỉ số (UV, PM2.5, PM1.0) của trạm {selectedStation?.name || 'được chọn'} theo từng tháng
                                         </p>
 
                                         {/* Legend moved to header */}
@@ -481,7 +421,7 @@ const Statistics: React.FC = () => {
                         </div>
                         <div className="p-3 sm:p-4">
                             <div className="w-full h-64 xl:h-80 overflow-hidden">
-                                <Bar data={yearlyData} options={yearlyChartOptions} />
+                                {yearlyChartData && <Bar data={yearlyChartData} options={yearlyChartOptions} />}
                             </div>
                         </div>
                     </div>
