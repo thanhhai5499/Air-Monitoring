@@ -1,0 +1,148 @@
+// ============================================
+// 🚀 REAL API SERVICE TEMPLATE
+// ============================================
+// This is a template for your real API integration
+// Copy this file to 'realApiService.ts' and implement your actual API calls
+
+import { LoginRequest, LoginResponse } from '../types/auth';
+
+// Your API base URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://your-api-domain.com/api';
+
+// API endpoints
+const API_ENDPOINTS = {
+  LOGIN: '/auth/login',
+  LOGOUT: '/auth/logout',
+  REFRESH: '/auth/refresh',
+  USER_INFO: '/auth/me'
+} as const;
+
+// HTTP client configuration
+const createApiClient = () => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  // Add auth token if available
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return headers;
+};
+
+// Real login API call
+export const realLogin = async (request: LoginRequest): Promise<LoginResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGIN}`, {
+      method: 'POST',
+      headers: createApiClient(),
+      body: JSON.stringify({
+        username: request.username,
+        password: request.password
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Adapt your API response to our LoginResponse interface
+    return {
+      success: data.success || response.ok,
+      message: data.message || 'Đăng nhập thành công!',
+      data: {
+        token: data.token || data.accessToken,
+        user: {
+          id: data.user?.id || data.userId,
+          username: data.user?.username || data.username,
+          email: data.user?.email,
+          role: data.user?.role || 'user',
+          displayName: data.user?.displayName || data.user?.name
+        },
+        expiresIn: data.expiresIn || 3600
+      }
+    };
+  } catch (error) {
+    console.error('Login API error:', error);
+    return {
+      success: false,
+      message: 'Không thể kết nối đến máy chủ!'
+    };
+  }
+};
+
+// Real logout API call
+export const realLogout = async (): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGOUT}`, {
+      method: 'POST',
+      headers: createApiClient()
+    });
+
+    return {
+      success: response.ok,
+      message: response.ok ? 'Đăng xuất thành công!' : 'Có lỗi xảy ra khi đăng xuất!'
+    };
+  } catch (error) {
+    console.error('Logout API error:', error);
+    return {
+      success: false,
+      message: 'Không thể kết nối đến máy chủ!'
+    };
+  }
+};
+
+// Real get user info API call
+export const realGetUserInfo = async (token: string): Promise<LoginResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.USER_INFO}`, {
+      method: 'GET',
+      headers: {
+        ...createApiClient(),
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      success: true,
+      message: 'Lấy thông tin người dùng thành công!',
+      data: {
+        user: {
+          id: data.id || data.userId,
+          username: data.username,
+          email: data.email,
+          role: data.role || 'user',
+          displayName: data.displayName || data.name
+        }
+      }
+    };
+  } catch (error) {
+    console.error('Get user info API error:', error);
+    return {
+      success: false,
+      message: 'Không thể lấy thông tin người dùng!'
+    };
+  }
+};
+
+// ============================================
+// 🔄 TO USE REAL API:
+// ============================================
+// 1. Rename this file to 'realApiService.ts'
+// 2. Update API_BASE_URL with your actual API URL
+// 3. Adjust API_ENDPOINTS to match your API routes
+// 4. Modify the request/response mapping to match your API
+// 5. In authService.ts, replace imports:
+//    - import { mockLogin, mockLogout, mockGetUserInfo } from './mockAuthService';
+//    + import { realLogin as mockLogin, realLogout as mockLogout, realGetUserInfo as mockGetUserInfo } from './realApiService';
+// ============================================ 

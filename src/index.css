@@ -1,0 +1,124 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap") layer(base);
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    * {
+        font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    }
+
+    html {
+        font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    }
+
+    body {
+        font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+        font-feature-settings: 'rlig' 1, 'calt' 1;
+    }
+}
+
+/* Custom styles for collapsible sidebar */
+@layer components {
+    .sidebar-transition {
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .menu-item-hover {
+        @apply relative group cursor-pointer;
+    }
+
+    .menu-item-hover:hover .tooltip {
+        @apply opacity-100 visible;
+    }
+
+    .tooltip {
+        @apply absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 invisible transition-all duration-200 pointer-events-none whitespace-nowrap z-50;
+    }
+
+    .menu-item-active {
+        @apply bg-blue-50 text-blue-700 border-r-4 border-blue-600;
+    }
+
+    .menu-item-inactive {
+        @apply text-gray-600 hover:bg-gray-50 hover:text-gray-900;
+    }
+
+    .sidebar-logo {
+        transition: all 0.3s ease-in-out;
+    }
+
+    .rotate-arrow {
+        transition: transform 0.3s ease-in-out;
+    }
+
+    /* Enhanced shadow for sidebar */
+    .sidebar-shadow {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Smooth text fade for collapsed state */
+    .text-fade {
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    /* Mobile overlay */
+    .mobile-overlay {
+        backdrop-filter: blur(2px);
+    }
+
+    /* Custom scrollbar for sidebar */
+    .sidebar-scroll::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 2px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+}
+
+/* Additional responsive utilities */
+@layer utilities {
+    .min-h-screen-mobile {
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+
+    /* Fix for iOS Safari viewport units */
+    @supports (-webkit-touch-callout: none) {
+        .min-h-screen-mobile {
+            min-height: -webkit-fill-available;
+        }
+    }
+
+    /* Font utilities */
+    .font-outfit {
+        font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    }
+
+    /* Map container z-index fix */
+    .leaflet-container {
+        z-index: 1 !important;
+    }
+
+    /* Leaflet popup z-index fix */
+    .leaflet-popup-pane {
+        z-index: 1000 !important;
+    }
+
+    /* Dropdown z-index override */
+    .dropdown-menu {
+        z-index: 9999 !important;
+    }
+}
