@@ -104,7 +104,7 @@ const UserManagement: React.FC = () => {
                 {/* Bảng tài khoản quản lý */}
                 <div className="mb-12">
                     <h2 className="text-2xl font-semibold text-gray-700 mb-4">Tài khoản Quản lý</h2>
-                    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                    <div className="bg-white shadow-md rounded-lg overflow-x-auto">
                         <table className="min-w-full leading-normal">
                             <thead>
                                 <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
@@ -182,7 +182,7 @@ const UserManagement: React.FC = () => {
                 {/* Bảng tài khoản người xem */}
                 <div>
                     <h2 className="text-2xl font-semibold text-gray-700 mb-4">Tài khoản Người xem</h2>
-                    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                    <div className="bg-white shadow-md rounded-lg overflow-x-auto">
                         <table className="min-w-full leading-normal">
                             <thead>
                                 <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
