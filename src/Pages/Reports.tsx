@@ -5,11 +5,11 @@ import StationSelector from '../components/StationSelector';
 import DatePicker from '../components/DatePicker';
 import * as XLSX from 'xlsx';
 import { mockStations } from '../data/mockStations';
-import { 
-  availableYears, 
-  getMonthlyHistoricalData, 
+import {
+  availableYears,
+  getMonthlyHistoricalData,
   getDailyHistoricalData,
-  type HistoricalReportData 
+  type HistoricalReportData
 } from '../data/historicalData';
 import type { StationData } from '../types/station';
 
@@ -48,17 +48,17 @@ const Reports: React.FC = () => {
 
     setLoading(true);
     setHasSearched(true);
-    
+
     setTimeout(() => {
       let data: ReportData[];
       const fromYear = new Date(fromDate).getFullYear();
-      
+
       if (viewType === 'monthly') {
         data = getMonthlyHistoricalData(selectedStation.id, fromYear);
       } else {
         data = getDailyHistoricalData(selectedStation.id, fromYear);
       }
-      
+
       // Filter data based on date range
       const filteredData = data.filter(item => {
         const itemDate = new Date(item.date);
@@ -66,7 +66,7 @@ const Reports: React.FC = () => {
         const to = new Date(toDate);
         return itemDate >= from && itemDate <= to;
       });
-      
+
       setTableData(filteredData);
       setCurrentDataViewType(viewType); // Update the current data view type
       setLoading(false);
@@ -124,7 +124,7 @@ const Reports: React.FC = () => {
 
     // Generate filename
     const fileName = `bao-cao-chat-luong-khong-khi-${selectedStation?.name || 'tram'}-${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
-    
+
     // Save file
     XLSX.writeFile(workbook, fileName);
   };
@@ -153,12 +153,11 @@ const Reports: React.FC = () => {
         width: '70px',
         align: 'center',
         render: (value: number) => (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            value >= 8 ? 'bg-red-100 text-red-800' :
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${value >= 8 ? 'bg-red-100 text-red-800' :
             value >= 6 ? 'bg-orange-100 text-orange-800' :
-            value >= 3 ? 'bg-yellow-100 text-yellow-800' :
-            'bg-green-100 text-green-800'
-          }`}>
+              value >= 3 ? 'bg-yellow-100 text-yellow-800' :
+                'bg-green-100 text-green-800'
+            }`}>
             {value.toFixed(1)}
           </span>
         )
@@ -172,12 +171,11 @@ const Reports: React.FC = () => {
         width: '90px',
         align: 'center',
         render: (value: number) => (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            value >= 50 ? 'bg-red-100 text-red-800' :
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${value >= 50 ? 'bg-red-100 text-red-800' :
             value >= 40 ? 'bg-orange-100 text-orange-800' :
-            value >= 30 ? 'bg-yellow-100 text-yellow-800' :
-            'bg-green-100 text-green-800'
-          }`}>
+              value >= 30 ? 'bg-yellow-100 text-yellow-800' :
+                'bg-green-100 text-green-800'
+            }`}>
             {value.toFixed(1)}
           </span>
         )
@@ -191,12 +189,11 @@ const Reports: React.FC = () => {
         width: '90px',
         align: 'center',
         render: (value: number) => (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            value >= 35 ? 'bg-red-100 text-red-800' :
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${value >= 35 ? 'bg-red-100 text-red-800' :
             value >= 25 ? 'bg-orange-100 text-orange-800' :
-            value >= 15 ? 'bg-yellow-100 text-yellow-800' :
-            'bg-green-100 text-green-800'
-          }`}>
+              value >= 15 ? 'bg-yellow-100 text-yellow-800' :
+                'bg-green-100 text-green-800'
+            }`}>
             {value.toFixed(1)}
           </span>
         )
@@ -243,7 +240,7 @@ const Reports: React.FC = () => {
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-3 sm:px-6 pt-6 sm:pt-8 pb-6 flex-shrink-0 border-b border-gray-100">
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+          <div className="flex flex-col gap-1">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-blue-500 rounded-lg">
@@ -257,11 +254,6 @@ const Reports: React.FC = () => {
                     {hasSearched && fromDate && toDate ? (
                       <>
                         Dữ liệu chi tiết về các chỉ số môi trường từ <span className="font-semibold text-blue-600">{new Date(fromDate).toLocaleDateString('vi-VN')}</span> đến <span className="font-semibold text-blue-600">{new Date(toDate).toLocaleDateString('vi-VN')}</span>
-                        {/* {selectedStation && (
-                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                            {selectedStation.name}
-                          </span>
-                        )} */}
                       </>
                     ) : (
                       "Chọn trạm quan trắc, thời gian và các thông số để xem báo cáo chi tiết"
@@ -270,9 +262,8 @@ const Reports: React.FC = () => {
                 </div>
               </div>
             </div>
-            
-            {/* Filters */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            {/* Filters - moved below the title */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 ">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-12 gap-4 items-end">
                 {/* Station Selector */}
                 <div className="sm:col-span-2 lg:col-span-2 xl:col-span-3">
@@ -286,34 +277,30 @@ const Reports: React.FC = () => {
                     />
                   </div>
                 </div>
-
                 {/* View Type Filter */}
                 <div className="lg:col-span-1 xl:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Loại hiển thị</label>
                   <div className="flex rounded-lg border border-gray-300 bg-gray-50 p-1 h-[36px]">
                     <button
                       onClick={() => setViewType('monthly')}
-                      className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
-                        viewType === 'monthly'
-                          ? 'bg-blue-500 text-white shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-white'
-                      }`}
+                      className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap ${viewType === 'monthly'
+                        ? 'bg-blue-500 text-white shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+                        }`}
                     >
                       Theo tháng
                     </button>
                     <button
                       onClick={() => setViewType('yearly')}
-                      className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap ${
-                        viewType === 'yearly'
-                          ? 'bg-blue-500 text-white shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-white'
-                      }`}
+                      className={`flex-1 px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap ${viewType === 'yearly'
+                        ? 'bg-blue-500 text-white shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+                        }`}
                     >
                       Theo ngày
                     </button>
                   </div>
                 </div>
-
                 {/* From Date Filter */}
                 <div className="lg:col-span-1 xl:col-span-2">
                   <DatePicker
@@ -323,7 +310,6 @@ const Reports: React.FC = () => {
                     placeholder="dd/mm/yyyy"
                   />
                 </div>
-
                 {/* To Date Filter */}
                 <div className="lg:col-span-1 xl:col-span-2">
                   <DatePicker
@@ -333,7 +319,6 @@ const Reports: React.FC = () => {
                     placeholder="dd/mm/yyyy"
                   />
                 </div>
-
                 {/* Data Type Filter */}
                 <div className="lg:col-span-1 xl:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Chỉ số</label>
@@ -356,7 +341,6 @@ const Reports: React.FC = () => {
                     </svg>
                   </div>
                 </div>
-
                 {/* Filter Button */}
                 <div className="lg:col-span-1 xl:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">&nbsp;</label>
