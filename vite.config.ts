@@ -23,6 +23,7 @@ export default defineConfig({
         port: 3001,
         strictPort: true,
         cors: true,
+        allowedHosts: ['admin.aiot-shtplabs.com'],
         headers: {
             'Cache-Control': 'max-age=31536000',
         }
