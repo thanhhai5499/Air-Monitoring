@@ -1,15 +1,31 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import svgr from 'vite-plugin-svgr'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [react()],
+    plugins: [
+        react(),
+        svgr({
+            svgrOptions: {
+                icon: true,
+                // This will transform your SVG to a React component
+            },
+        }),
+    ],
     server: {
-        port: 3000,
-        open: true
+        host: '0.0.0.0',
+        port: 3001,
+        strictPort: true,
     },
-    build: {
-        outDir: 'build',
-        sourcemap: true
+
+    preview: {
+        host: '0.0.0.0',
+        port: 3001,
+        strictPort: true,
+        cors: true,
+        headers: {
+            'Cache-Control': 'max-age=31536000',
+        }
     }
 }) 

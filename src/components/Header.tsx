@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import UserInfoModal from './UserInfoModal';
 import ChangePasswordModal from './ChangePasswordModal';
+import { mockUsers } from '../data/mockUsers';
 
 interface HeaderProps {
     sidebarOpen: boolean;
@@ -22,6 +23,8 @@ const Header: React.FC<HeaderProps> = ({
     const [userInfoModalOpen, setUserInfoModalOpen] = useState(false);
     const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const pendingUsersCount = mockUsers.filter(user => user.status === 'Pending').length;
 
     // Dữ liệu mẫu, sau này lấy từ API hoặc context
     const userInfo = {
@@ -85,7 +88,7 @@ const Header: React.FC<HeaderProps> = ({
                 {/* Center title */}
                 <div className="flex-1 text-center">
                     <h1 className="text-lg font-bold text-black-600 hidden sm:block">
-                        PHẦN MỀM HIỂN THỊ THÔNG SỐ DO TIA UV VÀ BỤI MỊN
+                        PHẦN MỀM HIỂN THỊ THÔNG SỐ ĐO TIA UV VÀ BỤI MỊN
                     </h1>
                     <h1 className="text-sm font-bold text-black-600 sm:hidden">
                         ĐO THÔNG SỐ TIA UV & BỤI MỊN
@@ -98,7 +101,11 @@ const Header: React.FC<HeaderProps> = ({
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-3.405-3.405A2.032 2.032 0 0116 13.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C6.67 6.165 6 8.388 6 11v2.159c0 .538-.214 1.055-.595 1.436L2 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">3</span>
+                        {pendingUsersCount > 0 && (
+                            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                                {pendingUsersCount}
+                            </span>
+                        )}
                     </button>
 
                     {/* User menu */}

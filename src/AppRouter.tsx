@@ -8,6 +8,7 @@ import Reports from './Pages/Reports';
 import StationManagement from './Pages/StationManagement';
 import NotFound from './Pages/NotFound';
 import ProtectedRoute from './utils/ProtectedRoute';
+import UserManagement from './Pages/UserManagement';
 
 const AppRouter: React.FC = () => {
     return (
@@ -41,6 +42,12 @@ const AppRouter: React.FC = () => {
             <Route path="/stations" element={
                 <ProtectedRoute>
                     <StationManagement />
+                </ProtectedRoute>
+            } />
+
+            <Route path="/users" element={
+                <ProtectedRoute>
+                    <UserManagement />
                 </ProtectedRoute>
             } />
 

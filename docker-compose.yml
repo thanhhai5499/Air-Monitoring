@@ -1,0 +1,17 @@
+version: '3.2'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run preview
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

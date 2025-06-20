@@ -14,17 +14,20 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
     const [currentStation, setCurrentStation] = useState<StationData | null>(null);
     const [stations, setStations] = useState<StationData[]>(mockStations);
 
-    // Không cần fetchStations nữa, dùng mockStations luôn
-    // ... giữ nguyên các logic còn lại ...
-
-    const fetchStationData = async () => {
-        // Mock function for future API integration
-        console.log('Fetching station data...');
-    };
-
     useEffect(() => {
-        fetchStationData();
-    }, [stationId]);
+        let stationToSelect: StationData | undefined;
+
+        if (stationId) {
+            stationToSelect = stations.find(s => s.id === stationId);
+        }
+
+        // If no specific station is found, or if no ID was provided, default to the first station.
+        if (!stationToSelect && stations.length > 0) {
+            stationToSelect = stations[0];
+        }
+
+        setCurrentStation(stationToSelect || null);
+    }, [stationId, stations]);
 
     const handleStationChange = (station: StationData) => {
         setCurrentStation(station);
@@ -84,11 +87,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5">
                                 <div
-                                    className={`h-1.5 rounded-full ${
-                                        averages.uv >= 8 ? 'bg-red-500' :
+                                    className={`h-1.5 rounded-full ${averages.uv >= 8 ? 'bg-red-500' :
                                         averages.uv >= 6 ? 'bg-yellow-500' :
-                                        'bg-blue-500'
-                                    }`}
+                                            'bg-blue-500'
+                                        }`}
                                     style={{ width: `${stations.length > 0 ? Math.min(averages.uv / 11 * 100, 100) : 0}%` }}
                                 ></div>
                             </div>
@@ -130,11 +132,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5">
                                 <div
-                                    className={`h-1.5 rounded-full ${
-                                        averages.pm1_0 >= 50 ? 'bg-red-500' :
+                                    className={`h-1.5 rounded-full ${averages.pm1_0 >= 50 ? 'bg-red-500' :
                                         averages.pm1_0 >= 25 ? 'bg-yellow-500' :
-                                        'bg-green-500'
-                                    }`}
+                                            'bg-green-500'
+                                        }`}
                                     style={{ width: `${stations.length > 0 ? Math.min(averages.pm1_0 / 100 * 100, 100) : 0}%` }}
                                 ></div>
                             </div>
@@ -175,11 +176,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5">
                                 <div
-                                    className={`h-1.5 rounded-full ${
-                                        averages.pm25 >= 35 ? 'bg-red-500' :
+                                    className={`h-1.5 rounded-full ${averages.pm25 >= 35 ? 'bg-red-500' :
                                         averages.pm25 >= 15 ? 'bg-yellow-500' :
-                                        'bg-orange-500'
-                                    }`}
+                                            'bg-orange-500'
+                                        }`}
                                     style={{ width: `${stations.length > 0 ? Math.min(averages.pm25 / 55 * 100, 100) : 0}%` }}
                                 ></div>
                             </div>
@@ -237,11 +237,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                                 </div>
                                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
                                                     <div
-                                                        className={`h-1.5 rounded-full ${
-                                                            (currentStation.airQuality.uv || 0) >= 8 ? 'bg-red-500' :
+                                                        className={`h-1.5 rounded-full ${(currentStation.airQuality.uv || 0) >= 8 ? 'bg-red-500' :
                                                             (currentStation.airQuality.uv || 0) >= 6 ? 'bg-yellow-500' :
-                                                            'bg-blue-500'
-                                                        }`}
+                                                                'bg-blue-500'
+                                                            }`}
                                                         style={{ width: `${Math.min((currentStation.airQuality.uv || 0) / 11 * 100, 100)}%` }}
                                                     ></div>
                                                 </div>
@@ -286,11 +285,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                                 </div>
                                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
                                                     <div
-                                                        className={`h-1.5 rounded-full ${
-                                                            (currentStation.airQuality.pm1_0 || 0) >= 50 ? 'bg-red-500' :
+                                                        className={`h-1.5 rounded-full ${(currentStation.airQuality.pm1_0 || 0) >= 50 ? 'bg-red-500' :
                                                             (currentStation.airQuality.pm1_0 || 0) >= 25 ? 'bg-yellow-500' :
-                                                            'bg-green-500'
-                                                        }`}
+                                                                'bg-green-500'
+                                                            }`}
                                                         style={{ width: `${Math.min((currentStation.airQuality.pm1_0 || 0) / 100 * 100, 100)}%` }}
                                                     ></div>
                                                 </div>
@@ -334,11 +332,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                                 </div>
                                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
                                                     <div
-                                                        className={`h-1.5 rounded-full ${
-                                                            (currentStation.airQuality.pm25 || 0) >= 35 ? 'bg-red-500' :
+                                                        className={`h-1.5 rounded-full ${(currentStation.airQuality.pm25 || 0) >= 35 ? 'bg-red-500' :
                                                             (currentStation.airQuality.pm25 || 0) >= 15 ? 'bg-yellow-500' :
-                                                            'bg-orange-500'
-                                                        }`}
+                                                                'bg-orange-500'
+                                                            }`}
                                                         style={{ width: `${Math.min((currentStation.airQuality.pm25 || 0) / 55 * 100, 100)}%` }}
                                                     ></div>
                                                 </div>
@@ -349,11 +346,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                     {/* Pin Card */}
                                     <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-md p-2.5 border-l-3 border-l-gray-400">
                                         <div className="flex items-center space-x-2.5">
-                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                                (currentStation.battery || 0) >= 60 ? 'bg-green-500' :
+                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${(currentStation.battery || 0) >= 60 ? 'bg-green-500' :
                                                 (currentStation.battery || 0) >= 30 ? 'bg-orange-500' :
-                                                'bg-red-500'
-                                            }`}>
+                                                    'bg-red-500'
+                                                }`}>
                                                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <rect x="3" y="7" width="15" height="10" rx="2" strokeWidth="2" />
                                                     <rect x="18" y="10" width="2" height="4" rx="1" strokeWidth="2" />
@@ -369,11 +365,10 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                                 </div>
                                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
                                                     <div
-                                                        className={`h-1.5 rounded-full ${
-                                                            (currentStation.battery || 0) >= 60 ? 'bg-green-500' :
+                                                        className={`h-1.5 rounded-full ${(currentStation.battery || 0) >= 60 ? 'bg-green-500' :
                                                             (currentStation.battery || 0) >= 30 ? 'bg-orange-500' :
-                                                            'bg-red-500'
-                                                        }`}
+                                                                'bg-red-500'
+                                                            }`}
                                                         style={{ width: `${Math.min((currentStation.battery || 0), 100)}%` }}
                                                     ></div>
                                                 </div>
