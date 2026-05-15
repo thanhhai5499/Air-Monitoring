@@ -9,6 +9,10 @@ import StationManagement from './Pages/StationManagement';
 import NotFound from './Pages/NotFound';
 import ProtectedRoute from './utils/ProtectedRoute';
 import UserManagement from './Pages/UserManagement';
+import News from './Pages/News';
+import Contact from './Pages/Contact';
+import ExtensionRequest from './Pages/ExtensionRequest';
+import MyExtensionRequests from './Pages/MyExtensionRequests';
 
 const AppRouter: React.FC = () => {
     return (
@@ -19,6 +23,7 @@ const AppRouter: React.FC = () => {
             {/* Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/extension-request" element={<ExtensionRequest />} />
 
             {/* Protected Routes */}
             <Route path="/dashboard" element={
@@ -51,12 +56,22 @@ const AppRouter: React.FC = () => {
                 </ProtectedRoute>
             } />
 
+            <Route path="/my-extension-requests" element={
+                <ProtectedRoute>
+                    <MyExtensionRequests />
+                </ProtectedRoute>
+            } />
+
             {/* Station detail route - for future use with API */}
             <Route path="/station/:stationId" element={
                 <ProtectedRoute>
                     <Dashboard />
                 </ProtectedRoute>
             } />
+
+            {/* News and Contact routes */}
+            <Route path="/news" element={<News />} />
+            <Route path="/contact" element={<Contact />} />
 
             {/* 404 Route */}
             <Route path="*" element={<NotFound />} />

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/authService';
+import { authService, loginGoogle } from '../services/authService';
+import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
+import { toast } from 'react-toastify';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
@@ -14,46 +16,106 @@ const Login: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        if (!email.trim() || !password.trim()) {
+            toast.dismiss();
+            toast.error('Vui lòng nhập tên đăng nhập và mật khẩu!');
+            return;
+        }
         setIsLoading(true);
 
         try {
             const result = await authService.login({
                 username: email,
-                password: password,
-                rememberMe: keepLoggedIn
+                password: password
             });
 
-            if (result.success) {
-                console.log('Login successful, redirecting to dashboard...');
-                navigate('/dashboard');
+            if (result.token) {
+                toast.dismiss();
+                // Redirect đến trang yêu cầu gia hạn khi: hết hạn (expired) hoặc mới đăng ký chờ mở khóa (isNewPending)
+                if ((result as any).expired && (result as any).userId) {
+                    const msg = (result as any).isNewPending
+                        ? 'Tài khoản đang chờ mở khóa. Vui lòng gửi yêu cầu gia hạn để Admin phê duyệt.'
+                        : 'Tài khoản của bạn đã hết hạn. Vui lòng gửi yêu cầu gia hạn.';
+                    toast.info(msg);
+                    const newParam = (result as any).isNewPending ? '&new=1' : '';
+                    setTimeout(() => navigate(`/extension-request?userId=${(result as any).userId}${newParam}`), 500);
+                } else {
+                    toast.success('Đăng nhập thành công!');
+                    setTimeout(() => navigate('/dashboard'), 500);
+                }
             } else {
-                setError(result.message);
+                toast.dismiss();
+                if (result.message) {
+                    toast.error(result.message);
+                    setError(result.message);
+                } else {
+                    toast.error('Tên Đăng Nhập hoặc Mật Khẩu không chính xác');
+                    setError('Tên Đăng Nhập hoặc Mật Khẩu không chính xác');
+                }
             }
         } catch (error) {
-            setError('Có lỗi xảy ra trong quá trình đăng nhập!');
+            toast.dismiss();
+            toast.error('Tên Đăng Nhập hoặc Mật Khẩu không chính xác');
+            setError('Tên Đăng Nhập hoặc Mật Khẩu không chính xác');
         } finally {
             setIsLoading(false);
         }
     };
 
+    // Xử lý đăng nhập bằng Google thực tế
+    const handleGoogleLoginSuccess = async (credentialResponse: any) => {
+        setError('');
+        setIsLoading(true);
+        try {
+            const idToken = credentialResponse.credential;
+            // Gửi idToken lên backend để xác thực và lấy JWT token
+            const result = await authService.loginGoogleOAuth(idToken);
+            if (result.token) {
+                toast.dismiss();
+                toast.success('Đăng nhập thành công!');
+                setTimeout(() => navigate('/dashboard'), 500);
+            } else {
+                toast.dismiss();
+                if (result.message) {
+                    toast.error(result.message);
+                    setError(result.message);
+                } else {
+                    toast.error('Tên Đăng Nhập hoặc Mật Khẩu không chính xác');
+                    setError('Tên Đăng Nhập hoặc Mật Khẩu không chính xác');
+                }
+            }
+        } catch (error) {
+            toast.dismiss();
+            toast.error('Tên Đăng Nhập hoặc Mật Khẩu không chính xác');
+            setError('Tên Đăng Nhập hoặc Mật Khẩu không chính xác');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Custom Google login
+    const googleLogin = useGoogleLogin({
+        onSuccess: handleGoogleLoginSuccess,
+        onError: () => setError('Đăng nhập Google thất bại!'),
+        flow: 'implicit',
+    });
+
     return (
-        <div className="min-h-screen flex">
+        <div className="min-h-screen flex bg-gray-100">
             {/* Left Side - Login Form */}
             <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
-                <div className="max-w-md w-full space-y-8">
-                    <div>
+                <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+                    <div className="mb-8 text-center">
                         <h2 className="text-4xl font-bold text-gray-900 mb-2">Đăng nhập</h2>
                         <p className="text-gray-600">Nhập tên đăng nhập và mật khẩu để đăng nhập!</p>
                     </div>
-
-                    <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    <form className="space-y-6" onSubmit={handleSubmit}>
                         {/* Error Message */}
                         {error && (
                             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                                 {error}
                             </div>
                         )}
-
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                                 Tên đăng nhập <span className="text-red-500">*</span>
@@ -62,7 +124,6 @@ const Login: React.FC = () => {
                                 id="email"
                                 name="email"
                                 type="text"
-                                required
                                 disabled={isLoading}
                                 className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                                 placeholder="Nhập tên đăng nhập"
@@ -70,7 +131,6 @@ const Login: React.FC = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
-
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                                 Mật khẩu <span className="text-red-500">*</span>
@@ -80,7 +140,6 @@ const Login: React.FC = () => {
                                     id="password"
                                     name="password"
                                     type={showPassword ? 'text' : 'password'}
-                                    required
                                     disabled={isLoading}
                                     className="appearance-none relative block w-full px-3 py-3 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                                     placeholder="Nhập mật khẩu"
@@ -102,33 +161,6 @@ const Login: React.FC = () => {
                                 </button>
                             </div>
                         </div>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <input
-                                    id="keep-logged-in"
-                                    name="keep-logged-in"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    checked={keepLoggedIn}
-                                    onChange={(e) => setKeepLoggedIn(e.target.checked)}
-                                />
-                                <label htmlFor="keep-logged-in" className="ml-2 block text-sm text-gray-900">
-                                    Ghi nhớ đăng nhập
-                                </label>
-                            </div>
-
-                            <div className="text-sm">
-                                <button
-                                    type="button"
-                                    className="font-medium text-blue-600 hover:text-blue-500 underline bg-transparent border-none cursor-pointer"
-                                    onClick={() => console.log('Forgot password clicked')}
-                                >
-                                    Quên mật khẩu?
-                                </button>
-                            </div>
-                        </div>
-
                         <div>
                             <button
                                 type="submit"
@@ -148,12 +180,31 @@ const Login: React.FC = () => {
                                 )}
                             </button>
                         </div>
-
-
-
-                        <div className="text-center">
+                        <div className="mt-6 flex flex-col items-center">
+                            <span className="mb-4 w-full text-center text-gray-900 font-bold text-1x">Đăng nhập dành cho người dùng theo dõi</span>
+                            <div className="w-full">
+                                <GoogleLogin
+                                    onSuccess={(credentialResponse) => {
+                                        if (!credentialResponse.credential) {
+                                            toast.error('Không lấy được idToken từ Google!');
+                                            return;
+                                        }
+                                        handleGoogleLoginSuccess(credentialResponse);
+                                    }}
+                                    onError={() => toast.error('Đăng nhập Google thất bại!')}
+                                    text="signin_with"
+                                    width="100%"
+                                    theme="outline"
+                                    size="large"
+                                    shape="rectangular"
+                                    logo_alignment="center"
+                                    ux_mode="popup"
+                                />
+                            </div>
+                        </div>
+                        <div className="text-center mt-6">
                             <span className="text-sm text-gray-600">
-                                Chưa có tài khoản?{' '}
+                                Đăng kí tài khoản dành cho quản lý?{' '}
                                 <button
                                     type="button"
                                     className="font-medium text-blue-600 hover:text-blue-500 underline bg-transparent border-none cursor-pointer"
@@ -166,9 +217,8 @@ const Login: React.FC = () => {
                     </form>
                 </div>
             </div>
-
             {/* Right Side - Brand/Logo */}
-            <div className="hidden lg:block relative w-0 flex-1">
+            <div className="hidden lg:block relative w-3/5 flex-1">
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 flex items-center justify-center overflow-hidden">
                     {/* Grid Background */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-20">
@@ -178,18 +228,15 @@ const Login: React.FC = () => {
                             className="w-full h-full object-contain scale-150"
                         />
                     </div>
-
                     <div className="text-center relative z-10">
                         {/* Logo Image */}
                         <div className="mb-6 relative">
-                            {/* Logo with enhanced styling */}
-                            <div className="relative p-8 rounded-2xl backdrop-blur-sm bg-white/5 border border-white/10 shadow-2xl">
+                            <div className="relative p-8 rounded-2xl backdrop-blur-sm bg-white/5 border border-white/20 shadow-2xl">
                                 <img
                                     src="/images/logo.png"
                                     alt="Company Logo"
-                                    className="h-24 w-auto mx-auto mb-4 drop-shadow-lg"
+                                    className="h-24 w-auto mx-auto mb-4 drop-shadow-2xl"
                                     onError={(e) => {
-                                        // Fallback nếu ảnh không load được
                                         e.currentTarget.style.display = 'none';
                                         const fallback = e.currentTarget.nextElementSibling as HTMLElement;
                                         if (fallback) {
@@ -198,7 +245,7 @@ const Login: React.FC = () => {
                                     }}
                                 />
                                 {/* Fallback text logo */}
-                                <h1 className="text-5xl font-bold text-white mb-4" style={{ display: 'none' }}>
+                                <h1 className="text-4xl font-bold text-white mb-4" style={{ display: 'none' }}>
                                     <span className="text-blue-300">SHT</span>
                                     <span className="text-red-400">P</span>
                                     <span className="text-white">LABS</span>

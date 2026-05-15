@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
+declare global {
+    interface ImportMeta {
+        env: Record<string, string>;
+    }
+}
 
 const Register: React.FC = () => {
     const navigate = useNavigate();
@@ -18,6 +25,8 @@ const Register: React.FC = () => {
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_AUTH || import.meta.env.VITE_API_BASE_URL || '/api';
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -72,9 +81,10 @@ const Register: React.FC = () => {
             return;
         }
 
-        // Email validation - must end with @tphcm.gov.vn
-        if (!formData.email.endsWith('@tphcm.gov.vn')) {
-            setError('Email phải có đuôi @tphcm.gov.vn!');
+        // Email validation - chỉ kiểm tra cấu trúc email hợp lệ (có @ và domain)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('Email không đúng định dạng! Vui lòng nhập email hợp lệ (ví dụ: user@example.com)');
             return;
         }
 
@@ -101,20 +111,47 @@ const Register: React.FC = () => {
         }
 
         if (!formData.agreeToTerms) {
-            setError('Vui lòng đồng ý với điều khoản sử dụng!');
+            setError('Bạn phải đồng ý với điều khoản sử dụng và chính sách bảo mật!');
+            toast.error('Bạn phải đồng ý với điều khoản sử dụng và chính sách bảo mật!');
             return;
         }
 
         setIsLoading(true);
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Mock registration success
-            console.log('Registration data:', formData);
-            alert('Đăng ký thành công! Vui lòng đăng nhập.');
-            navigate('/login');
+            // Gọi API đăng ký thực tế
+            const response = await fetch(`${API_BASE_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: formData.username,
+                    email: formData.email,
+                    password: formData.password,
+                    fullName: formData.fullName,
+                    role: 'manager',
+                    organization: formData.workplace,
+                    position: formData.position,
+                    phone: formData.phone
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                setError(data.message || 'Có lỗi xảy ra trong quá trình đăng ký!');
+                setIsLoading(false);
+                return;
+            }
+            
+            // Nếu đăng ký manager và không có token (chờ duyệt)
+            if (data.success && !data.data?.token) {
+                toast.success(data.message || 'Đăng ký thành công! Tài khoản của bạn đang chờ phê duyệt từ Admin.');
+                setError('');
+                navigate('/login');
+            } else {
+                // Đăng ký thành công và có token (role khác manager)
+                toast.success('Đăng ký thành công! Vui lòng đăng nhập.');
+                setError('');
+                navigate('/login');
+            }
         } catch (error) {
             setError('Có lỗi xảy ra trong quá trình đăng ký!');
         } finally {
@@ -232,7 +269,7 @@ const Register: React.FC = () => {
                                     required
                                     disabled={isLoading}
                                     className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                    placeholder="Nhập email công vụ (@tphcm.gov.vn)"
+                                    placeholder="user@example.com"
                                     value={formData.email}
                                     onChange={handleInputChange}
                                 />

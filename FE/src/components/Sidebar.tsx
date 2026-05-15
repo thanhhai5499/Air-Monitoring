@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { authService } from '../services/authService';
 
 interface SidebarProps {
     sidebarOpen: boolean;
@@ -16,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const user = authService.getCurrentUser();
 
     const menuItems = [
         {
@@ -62,8 +64,49 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </svg>
             ),
             path: '/users'
+        },
+        {
+            name: 'Lịch sử yêu cầu gia hạn',
+            icon: (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+            ),
+            path: '/my-extension-requests',
+            managerOnly: true
+        },
+        {
+            name: 'Tin tức',
+            icon: (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="18" height="14" rx="2" strokeWidth="2" stroke="currentColor" fill="none" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h6M7 12h10M7 16h10" />
+                </svg>
+            ),
+            path: '/news'
+        },
+        {
+            name: 'Liên hệ',
+            icon: (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+            ),
+            path: '/contact'
         }
     ];
+
+    // Ẩn menu 'Báo cáo' và 'Quản lý các trạm' nếu là user thường hoặc user Google
+    let filteredMenuItems = menuItems;
+    if (user?.role !== 'admin') {
+        filteredMenuItems = filteredMenuItems.filter(item => item.path !== '/users' && !(item as any).adminOnly);
+    }
+    if (user?.role !== 'manager') {
+        filteredMenuItems = filteredMenuItems.filter(item => !(item as any).managerOnly);
+    }
+    if (user?.role === 'user' || user?.role === '3') {
+        filteredMenuItems = filteredMenuItems.filter(item => item.path !== '/reports' && item.path !== '/stations');
+    }
 
     // Check if current path matches menu item path
     const isActive = (path: string) => {
@@ -118,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                     {/* Menu Items */}
                     <div className="space-y-1">
-                        {menuItems.map((item, index) => (
+                        {filteredMenuItems.map((item, index) => (
                             <div key={index} className="relative group">
                                 <button
                                     onClick={() => {

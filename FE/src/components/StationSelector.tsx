@@ -4,16 +4,16 @@ interface StationData {
     id: string;
     name: string;
     coordinates: { lat: number; lng: number };
-    airQuality: {
-        uv: number | null;
-        pm25: number | null;
-        pm1_0: number | null;
-        uvTrend?: number;
-        pm25Trend?: number;
-        pm1_0Trend?: number;
-    };
+    sensors: {
+        id: number;
+        name: string;
+        value: number | null;
+        unit: string;
+        recordedAt: string;
+    }[];
     status: 'online' | 'offline' | 'maintenance';
     lastUpdated?: string;
+    location?: string;
 }
 
 interface StationSelectorProps {
@@ -64,7 +64,7 @@ const StationSelector: React.FC<StationSelectorProps> = ({
                 <div className="flex-1">
                     {selectedStation ? (
                         <h3 className="font-semibold text-gray-900 text-sm">
-                            {selectedStation.name}
+                            {selectedStation.location || selectedStation.name}
                         </h3>
                     ) : (
                         <h3 className="font-medium text-gray-500 text-sm">
@@ -108,26 +108,16 @@ const StationSelector: React.FC<StationSelectorProps> = ({
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1">
                                         <h4 className="font-medium text-gray-900 text-sm">
-                                            {station.name}
+                                            {station.location || station.name}
                                         </h4>
 
                                         {showAirQuality && (
-                                            <div className="flex items-center space-x-4 mt-2 text-xs">
-                                                <span className="text-gray-600">
-                                                    UV: <span className="font-medium">
-                                                        {station.airQuality.uv?.toFixed(1) || '-'}
+                                            <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
+                                                {station.sensors.map(sensor => (
+                                                    <span key={sensor.id} className="text-gray-600">
+                                                        {sensor.name}: <span className="font-medium">{sensor.value !== null && sensor.value !== undefined ? `${sensor.value} ${sensor.unit}` : '--'}</span>
                                                     </span>
-                                                </span>
-                                                <span className="text-gray-600">
-                                                    PM1.0: <span className="font-medium">
-                                                        {station.airQuality.pm1_0?.toFixed(1) || '-'}
-                                                    </span>
-                                                </span>
-                                                <span className="text-gray-600">
-                                                    PM2.5: <span className="font-medium">
-                                                        {station.airQuality.pm25?.toFixed(1) || '-'}
-                                                    </span>
-                                                </span>
+                                                ))}
                                             </div>
                                         )}
 

@@ -1,32 +1,16 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-
-interface UserInfoModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    userInfo: {
-        fullName: string;
-        email: string;
-        workplace: string;
-        position: string;
-        phone?: string;
-    };
-    onSave?: (data: {
-        fullName: string;
-        email: string;
-        workplace: string;
-        position: string;
-        phone?: string;
-    }) => void;
-}
+import { UserInfoModalProps } from '../types/components';
 
 const UserInfoModal: React.FC<UserInfoModalProps> = ({ isOpen, onClose, userInfo, onSave }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState(userInfo);
+    const [error, setError] = useState('');
 
     React.useEffect(() => {
         setEditData(userInfo);
         setIsEditing(false);
+        setError('');
     }, [userInfo, isOpen]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,8 +19,27 @@ const UserInfoModal: React.FC<UserInfoModalProps> = ({ isOpen, onClose, userInfo
     };
 
     const handleSave = () => {
+        // Validate các trường không được để trống
+        if (!editData.fullName.trim() || !editData.email.trim() || !editData.workplace.trim() || !editData.position.trim() || !editData.phone?.trim()) {
+            setError('Vui lòng nhập đầy đủ thông tin!');
+            return;
+        }
+        // Validate email
+        if (!/^\S+@tphcm\.gov\.vn$/.test(editData.email)) {
+            setError('Email phải có đuôi @tphcm.gov.vn!');
+            return;
+        }
+        // Validate số điện thoại
+        if (!/^\d{10}$/.test(editData.phone || '')) {
+            setError('Số điện thoại phải đủ 10 số!');
+            return;
+        }
+        setError('');
         setIsEditing(false);
         if (onSave) onSave(editData);
+        setTimeout(() => {
+            onClose();
+        }, 800);
     };
 
     if (!isOpen) return null;
@@ -54,6 +57,7 @@ const UserInfoModal: React.FC<UserInfoModalProps> = ({ isOpen, onClose, userInfo
                 </button>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Thông tin cá nhân</h2>
                 <form className="space-y-5" onSubmit={e => { e.preventDefault(); if (isEditing) handleSave(); }}>
+                    {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-sm">{error}</div>}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
                         <input

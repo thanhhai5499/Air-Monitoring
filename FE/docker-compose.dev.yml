@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: air-monitoring-fe-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.node.json:/app/tsconfig.node.json
+      - ./tailwind.config.js:/app/tailwind.config.js
+      - ./postcss.config.js:/app/postcss.config.js
+      # Mount .env file
+      - ./.env.docker:/app/.env
+    environment:
+      - NODE_ENV=development
+      # For Windows/Mac Docker Desktop
+      - VITE_API_BASE_URL_AUTH=http://host.docker.internal:5001
+      - VITE_API_BASE_URL_USER=http://host.docker.internal:5002
+      - VITE_API_BASE_URL_DATA=http://host.docker.internal:5004
+      - VITE_API_BASE_URL_STATION=http://host.docker.internal:5006
+      - VITE_API_BASE_URL_STATISTICS=http://host.docker.internal:5007
+      - VITE_API_BASE_URL_REPORT=http://host.docker.internal:5005
+    extra_hosts:
+      # For older Docker versions on Windows/Mac
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+# For Linux users, uncomment this and comment out the above service
+# services:
+#   frontend-dev:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.dev
+#     container_name: air-monitoring-fe-dev
+#     network_mode: "host"
+#     volumes:
+#       - ./src:/app/src
+#       - ./public:/app/public
+#       - ./index.html:/app/index.html
+#       - ./vite.config.ts:/app/vite.config.ts
+#       - ./.env.docker:/app/.env
+#     environment:
+#       - NODE_ENV=development
+#       - VITE_API_BASE_URL_AUTH=http://localhost:5001
+#       - VITE_API_BASE_URL_USER=http://localhost:5002
+#       - VITE_API_BASE_URL_DATA=http://localhost:5004
+#       - VITE_API_BASE_URL_STATION=http://localhost:5006
+#       - VITE_API_BASE_URL_STATISTICS=http://localhost:5007
+#       - VITE_API_BASE_URL_REPORT=http://localhost:5005
+#     restart: unless-stopped

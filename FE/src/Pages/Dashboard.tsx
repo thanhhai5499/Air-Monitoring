@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import MapComponent from '../components/MapComponent';
 import StationSelector from '../components/StationSelector';
-import { mockStations } from '../data/mockStations';
+import { fetchAverageDayData, fetchSensorLatestData } from '../services/dataApi';
+import { toast } from 'react-toastify';
+import { authService } from '../services/authService';
 import type { StationData } from '../types/station';
 
 interface DashboardProps {
@@ -12,7 +14,9 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, stationId }) => {
     const [currentStation, setCurrentStation] = useState<StationData | null>(null);
-    const [stations, setStations] = useState<StationData[]>(mockStations);
+    const [stations, setStations] = useState<StationData[]>([]);
+    const [averageData, setAverageData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         let stationToSelect: StationData | undefined;
@@ -29,28 +33,138 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
         setCurrentStation(stationToSelect || null);
     }, [stationId, stations]);
 
+    useEffect(() => {
+        Promise.all([
+            fetchAverageDayData(),
+            fetchSensorLatestData()
+        ])
+            .then(([averageDay, stations]) => {
+                setAverageData(averageDay || []);
+                setStations(stations.map(mapStationFromApi));
+            })
+            .catch((err) => {
+                console.error('Lỗi khi tải dữ liệu:', err);
+            });
+    }, []);
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [averageDay, stations] = await Promise.all([
+                fetchAverageDayData(),
+                fetchSensorLatestData()
+            ]);
+            setAverageData(averageDay.data || []);
+            setStations(stations || []);
+        } catch (error) {
+            toast.error('Lỗi khi tải dữ liệu!');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleStationChange = (station: StationData) => {
         setCurrentStation(station);
     };
 
-    // Calculate average values from all stations
-    const calculateAverages = () => {
-        if (stations.length === 0) return { uv: 0, pm25: 0, pm1_0: 0 };
+    // Helper lấy giá trị theo sensor
+    const getSensor = (key: string) => averageData.find(d => d.sensor.toLowerCase() === key.toLowerCase());
 
-        const totals = stations.reduce((acc, station) => ({
-            uv: acc.uv + (station.airQuality.uv || 0),
-            pm25: acc.pm25 + (station.airQuality.pm25 || 0),
-            pm1_0: acc.pm1_0 + (station.airQuality.pm1_0 || 0),
-        }), { uv: 0, pm25: 0, pm1_0: 0 });
-
-        return {
-            uv: totals.uv / stations.length,
-            pm25: totals.pm25 / stations.length,
-            pm1_0: totals.pm1_0 / stations.length,
-        };
+    // Hàm tính chỉ số UV (cường độ * 1.6)
+    const calculateUVIndex = (uvIntensity: number | null | undefined): number | null => {
+        if (uvIntensity === null || uvIntensity === undefined) return null;
+        return Math.round(uvIntensity * 1.6); // Làm tròn thành số nguyên
     };
 
-    const averages = calculateAverages();
+    // Hàm lấy mô tả chỉ số UV
+    const getUVIndexDescription = (uvIndex: number | null): string => {
+        if (uvIndex === null) return '';
+        if (uvIndex <= 2) return 'Thấp';
+        if (uvIndex <= 5) return 'Trung bình';
+        if (uvIndex <= 7) return 'Cao';
+        if (uvIndex <= 10) return 'Rất cao';
+        return 'Cực cao';
+    };
+
+    // Hàm lấy màu thanh theo level
+    const getBarColor = (level: number) => {
+        switch (level) {
+            case 1: return 'bg-green-500';   // #4CAF50
+            case 2: return 'bg-yellow-400';  // #FFD600
+            case 3: return 'bg-orange-400';  // #FF9800
+            case 4: return 'bg-red-500';     // #F44336
+            default: return 'bg-gray-300';
+        }
+    };
+
+    // Hàm lấy độ dài thanh theo level
+    const getBarWidthByLevel = (level: number) => {
+        switch (level) {
+            case 1: return '25%';
+            case 2: return '50%';
+            case 3: return '75%';
+            case 4: return '100%';
+            default: return '0%';
+        }
+    };
+
+    // Thêm 2 hàm hỗ trợ cho battery (nhận giá trị đã convert)
+    function getBatteryBarColor(convertedValue: number | null | undefined) {
+        const voltage = convertedValue ? convertedValue / 1000 : 0;
+        if (voltage >= 4.1) return 'bg-green-500';    // 90-100%
+        if (voltage >= 3.8) return 'bg-yellow-400';   // 65-90%
+        if (voltage >= 3.5) return 'bg-orange-400';   // 35-65%
+        return 'bg-red-500';                          // <35%
+    }
+    function getBatteryBarWidth(convertedValue: number | null | undefined) {
+        const voltage = convertedValue ? convertedValue / 1000 : 0;
+        if (voltage > 4.5) return '100%';         // Quá sạc
+        if (voltage >= 4.2) return '100%';        // 100%
+        if (voltage >= 4.1) return '96%';         // 95-98%
+        if (voltage >= 4.0) return '92%';         // 90-95%
+        if (voltage >= 3.9) return '87%';         // 85-90%
+        if (voltage >= 3.8) return '80%';         // 75-85%
+        if (voltage >= 3.7) return '70%';         // 65-75%
+        if (voltage >= 3.6) return '57%';         // 50-65%
+        if (voltage >= 3.5) return '42%';         // 35-50%
+        if (voltage >= 3.4) return '27%';         // 20-35%
+        if (voltage >= 3.3) return '17%';         // 15-20%
+        if (voltage >= 3.0) return '10%';         // 5-15%
+        if (voltage >= 2.5) return '3%';          // 0.2-5%
+        if (voltage >= 2.2) return '1%';          // 0%
+        return '0%';                              // Pin quá xả
+    }
+
+    // Map dữ liệu từ API về dạng FE cần (không fix cứng sensor)
+    function mapStationFromApi(apiStation: any): StationData {
+        let status: 'online' | 'offline' | 'maintenance' = 'offline';
+        if (apiStation.status === 'active') status = 'online';
+        else if (apiStation.status === 'maintenance') status = 'maintenance';
+
+        return {
+            id: apiStation.id.toString(),
+            name: apiStation.name,
+            location: apiStation.location,
+            coordinates: { lat: apiStation.latitude, lng: apiStation.longitude },
+            sensors: apiStation.sensors || [],
+            status,
+            lastUpdated: apiStation.sensors?.[0]?.recordedAt || '',
+        };
+    }
+
+    // Hàm chuyển đổi giá trị battery theo từng trạm
+    function convertBatteryValue(stationName: string, value: number): number {
+        if (stationName === '[CNC]Sensor_A') {
+            return 3962 + ((4195 - 3962) / (3840 - 3250)) * (value - 3250);
+        }
+        if (stationName === '[CNC]Sensor_B') {
+            return 3962 + ((4195 - 3962) / (3840 - 3250)) * (value - 3250);
+        }
+        if (stationName === '[CNC]Sensor_C') {
+            return 3962 + ((4195 - 3962) / (3840 - 3250)) * (value - 3250);
+        }
+        return value;
+    }
 
     return (
         <Layout>
@@ -58,133 +172,49 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                 {/* Average Air Quality Cards */}
                 <div className="mb-4">
                     <h2 className="text-2xl font-bold text-gray-900 mb-1">Chỉ Số Không Khí</h2>
-                    <p className="text-gray-600">Dữ liệu trung bình từ {stations.length} trạm quan trắc</p>
+                    <p className="text-gray-600">Dữ liệu trung bình từ 3 trạm quan trắc</p>
                 </div>
                 <div className="grid gap-4 md:grid-cols-3 mb-8">
-                    {/* UV Index Card */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <h3 className="text-base font-bold text-gray-900 mb-1">UV</h3>
-                                <p className="text-xs text-gray-500 mb-2">UV Index</p>
-                                <div className="flex items-end space-x-2">
-                                    <span className="text-xl font-bold text-gray-900">
-                                        {stations.length > 0 ? averages.uv.toFixed(1) : '--'}
-                                    </span>
-                                    <span className="text-xs text-gray-500 mb-1">Trung bình</span>
-                                </div>
-                            </div>
-                            <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div className="mt-3">
-                            <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                <span>Thấp</span>
-                                <span>Cao</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                <div
-                                    className={`h-1.5 rounded-full ${averages.uv >= 8 ? 'bg-red-500' :
-                                        averages.uv >= 6 ? 'bg-yellow-500' :
-                                            'bg-blue-500'
-                                        }`}
-                                    style={{ width: `${stations.length > 0 ? Math.min(averages.uv / 11 * 100, 100) : 0}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
+                    {averageData.filter(item => item.sensor.toLowerCase() !== 'battery').map((item) => {
+                        const isUV = item.sensor.toLowerCase() === 'uv';
+                        const uvIndex = isUV ? calculateUVIndex(item.avg) : null;
 
-                    {/* PM1.0 Card */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <h3 className="text-base font-bold text-gray-900 mb-1">PM1.0</h3>
-                                <p className="text-xs text-gray-500 mb-2">PM1.0</p>
-                                <div className="flex items-end space-x-2">
-                                    <span className="text-xl font-bold text-gray-900">
-                                        {stations.length > 0 ? `${averages.pm1_0.toFixed(1)} μg/m³` : '-- μg/m³'}
-                                    </span>
-                                    <span className="text-xs text-gray-500 mb-1">Trung bình</span>
+                        return (
+                            <div key={item.sensor} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 relative">
+                                {/* Chỉ số UV ở góc phải */}
+                                {isUV && uvIndex !== null && (
+                                    <div className="absolute top-3 right-3 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                        Chỉ số UV: {uvIndex}
+                                    </div>
+                                )}
+                                <div className="flex items-start justify-between">
+                                    <div className={isUV ? 'pr-20' : ''}>
+                                        <h3 className="text-base font-bold text-gray-900 mb-1">{item.sensor}</h3>
+                                        <p className="text-xs text-gray-500 mb-2">{item.name}</p>
+                                        <div className="flex items-end space-x-2">
+                                            <span className="text-xl font-bold text-gray-900">
+                                                {item.avg !== undefined ? `${item.avg.toFixed(1)} ${item.unit}` : '--'}
+                                            </span>
+                                            <span className="text-xs text-gray-500 mb-1">{item.description || 'Trung bình'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-3">
+                                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                        <span>Tốt</span>
+                                        <span className="mx-auto text-xs text-gray-500">Trung Bình</span>
+                                        <span>Có hại</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-1.5 relative">
+                                        <div
+                                            className={`h-1.5 rounded-full ${getBarColor(item.level ?? 0)} absolute left-0 top-0`}
+                                            style={{ width: getBarWidthByLevel(item.level ?? 0), zIndex: 1 }}
+                                        ></div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center">
-                                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                                    <circle cx="5" cy="5" r="2" />
-                                    <circle cx="12" cy="3" r="1.5" />
-                                    <circle cx="19" cy="6" r="2" />
-                                    <circle cx="3" cy="12" r="1.5" />
-                                    <circle cx="9" cy="9" r="2" />
-                                    <circle cx="16" cy="11" r="1.5" />
-                                    <circle cx="7" cy="16" r="1.5" />
-                                    <circle cx="14" cy="19" r="2" />
-                                    <circle cx="21" cy="15" r="1.5" />
-                                    <circle cx="11" cy="17" r="1" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div className="mt-3">
-                            <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                <span>Tốt</span>
-                                <span>Có hại</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                <div
-                                    className={`h-1.5 rounded-full ${averages.pm1_0 >= 50 ? 'bg-red-500' :
-                                        averages.pm1_0 >= 25 ? 'bg-yellow-500' :
-                                            'bg-green-500'
-                                        }`}
-                                    style={{ width: `${stations.length > 0 ? Math.min(averages.pm1_0 / 100 * 100, 100) : 0}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* PM2.5 Card */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <h3 className="text-base font-bold text-gray-900 mb-1">PM2.5</h3>
-                                <p className="text-xs text-gray-500 mb-2">PM2.5</p>
-                                <div className="flex items-end space-x-2">
-                                    <span className="text-xl font-bold text-gray-900">
-                                        {stations.length > 0 ? `${averages.pm25.toFixed(1)} μg/m³` : '-- μg/m³'}
-                                    </span>
-                                    <span className="text-xs text-gray-500 mb-1">Trung bình</span>
-                                </div>
-                            </div>
-                            <div className="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center">
-                                <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
-                                    <circle cx="6" cy="6" r="1.5" />
-                                    <circle cx="12" cy="4" r="1" />
-                                    <circle cx="18" cy="7" r="1.5" />
-                                    <circle cx="4" cy="12" r="1" />
-                                    <circle cx="10" cy="10" r="1.5" />
-                                    <circle cx="16" cy="12" r="1" />
-                                    <circle cx="8" cy="16" r="1" />
-                                    <circle cx="14" cy="18" r="1.5" />
-                                    <circle cx="20" cy="16" r="1" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div className="mt-3">
-                            <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                <span>Tốt</span>
-                                <span>Có hại</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                <div
-                                    className={`h-1.5 rounded-full ${averages.pm25 >= 35 ? 'bg-red-500' :
-                                        averages.pm25 >= 15 ? 'bg-yellow-500' :
-                                            'bg-orange-500'
-                                        }`}
-                                    style={{ width: `${stations.length > 0 ? Math.min(averages.pm25 / 55 * 100, 100) : 0}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
+                        );
+                    })}
                 </div>
 
                 {/* Map and Station Selector */}
@@ -210,171 +240,114 @@ const Dashboard: React.FC<DashboardProps> = ({ stationData: propStationData, sta
                                     <p className="text-sm text-gray-600 mt-1">{currentStation.name}</p>
                                 </div>
                                 <div className="p-3 space-y-2.5">
-                                    {/* UV Index Card - Compact */}
-                                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-md p-2.5 border-l-3 border-l-blue-500">
-                                        <div className="flex items-center space-x-2.5">
-                                            <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                                                </svg>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <h4 className="text-sm font-medium text-gray-900">UV Index</h4>
-                                                    <div className="flex items-center space-x-1.5">
-                                                        <span className="text-base font-bold text-gray-900">
-                                                            {currentStation.airQuality.uv?.toFixed(1) || '-'}
-                                                        </span>
-                                                        <div className="flex items-center space-x-0.5">
-                                                            <svg className={`w-2.5 h-2.5 ${currentStation.airQuality.uvTrend && currentStation.airQuality.uvTrend > 0 ? 'text-red-500' : 'text-green-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={currentStation.airQuality.uvTrend && currentStation.airQuality.uvTrend > 0 ? "M17 7l-9.2 9.2M7 7v10M7 7h10" : "M7 17l9.2-9.2M17 17V7M17 17H7"} />
-                                                            </svg>
-                                                            <span className={`text-xs ${currentStation.airQuality.uvTrend && currentStation.airQuality.uvTrend > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                                                                {currentStation.airQuality.uvTrend ? `${Math.abs(currentStation.airQuality.uvTrend).toFixed(1)}%` : '-'}
-                                                            </span>
+                                    {(() => {
+                                        const user = authService.getAuthState().user;
+                                        const canViewBattery = user && (
+                                            user.role === '1' || user.role === '2' ||
+                                            user.role === 'admin' || user.role === 'manager'
+                                        );
+                                        return currentStation.sensors
+                                            .filter(sensor => {
+                                                if (sensor.name.toLowerCase() === 'battery') {
+                                                    return canViewBattery;
+                                                }
+                                                // Nếu là user thường thì ẩn battery
+                                                if (user && user.role === 'user' && sensor.name.toLowerCase() === 'battery') {
+                                                    return false;
+                                                }
+                                                return true;
+                                            })
+                                            .map(sensor => {
+                                                let valueDisplay = '';
+                                                let uvIndexDisplay = '';
+                                                let convertedBatteryValue: number | undefined;
+
+                                                if (sensor.name.toLowerCase() === 'battery' && sensor.value !== null && sensor.value !== undefined) {
+                                                    convertedBatteryValue = convertBatteryValue(currentStation.name, sensor.value);
+                                                    const voltage = convertedBatteryValue / 1000;
+                                                    let percent = '';
+                                                    if (voltage >= 4.2 && voltage <= 4.5) percent = '100%';
+                                                    else if (voltage > 4.5) percent = '>100% (quá sạc)';
+                                                    else if (voltage >= 4.1) percent = '95-98%';
+                                                    else if (voltage >= 4.0) percent = '90-95%';
+                                                    else if (voltage >= 3.9) percent = '85-90%';
+                                                    else if (voltage >= 3.8) percent = '75-85%';
+                                                    else if (voltage >= 3.7) percent = '65-75%';
+                                                    else if (voltage >= 3.6) percent = '50-65%';
+                                                    else if (voltage >= 3.5) percent = '35-50%';
+                                                    else if (voltage >= 3.4) percent = '20-35%';
+                                                    else if (voltage >= 3.3) percent = '15-20%';
+                                                    else if (voltage >= 3.2) percent = '10-15%';
+                                                    else if (voltage >= 3.1) percent = '7-10%';
+                                                    else if (voltage >= 3.0) percent = '5-7%';
+                                                    else if (voltage >= 2.9) percent = '3-5%';
+                                                    else if (voltage >= 2.8) percent = '2-3%';
+                                                    else if (voltage >= 2.7) percent = '1-2%';
+                                                    else if (voltage >= 2.6) percent = '0.5-1%';
+                                                    else if (voltage >= 2.5) percent = '0.2-0.5%';
+                                                    else if (voltage >= 2.4) percent = '0.1-0.2%';
+                                                    else if (voltage >= 2.3) percent = '0.05-0.1%';
+                                                    else if (voltage >= 2.2) percent = '0%';
+                                                    else if (voltage > 2.0 && voltage < 2.2) percent = 'Pin quá xả';
+                                                    else if (voltage <= 2.0) percent = 'Pin quá xả';
+                                                    valueDisplay = `${percent} - ${voltage.toFixed(2)} V`;
+                                                } else if (sensor.name.toLowerCase() === 'uv' && sensor.value !== null && sensor.value !== undefined) {
+                                                    const uvIndex = calculateUVIndex(sensor.value);
+                                                    const uvIndexDesc = getUVIndexDescription(uvIndex);
+                                                    valueDisplay = `${sensor.value} ${sensor.unit}`;
+                                                    uvIndexDisplay = uvIndex !== null ? `Chỉ số UV: ${uvIndex} (${uvIndexDesc})` : '';
+                                                } else {
+                                                    valueDisplay = sensor.value !== null && sensor.value !== undefined ? `${sensor.value} ${sensor.unit}` : '--';
+                                                }
+                                                return (
+                                                    <div key={sensor.id} className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-md p-2.5 border-l-3 border-l-gray-400">
+                                                        <div className="flex items-center space-x-2.5">
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center justify-between mb-1">
+                                                                    <h4 className="text-sm font-medium text-gray-900">{sensor.name}</h4>
+                                                                    <span className="text-base font-bold text-gray-900">
+                                                                        {valueDisplay}
+                                                                    </span>
+                                                                </div>
+                                                                {/* Hiển thị chỉ số UV */}
+                                                                {uvIndexDisplay && (
+                                                                    <p className="text-xs text-blue-600 font-medium mb-1">{uvIndexDisplay}</p>
+                                                                )}
+                                                                {sensor.name.toLowerCase() === 'battery' ? (
+                                                                    <>
+                                                                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                                                            <span>Yếu</span>
+                                                                            <span className="mx-auto text-xs text-gray-500">Trung Bình</span>
+                                                                            <span>Tốt</span>
+                                                                        </div>
+                                                                        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
+                                                                            <div
+                                                                                className={`h-1.5 rounded-full ${getBatteryBarColor(convertedBatteryValue)}`}
+                                                                                style={{ width: getBatteryBarWidth(convertedBatteryValue) }}
+                                                                            ></div>
+                                                                        </div>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                                                            <span>Tốt</span>
+                                                                            <span className="mx-auto text-xs text-gray-500">Trung Bình</span>
+                                                                            <span>Có hại</span>
+                                                                        </div>
+                                                                        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
+                                                                            <div
+                                                                                className={`h-1.5 rounded-full ${getBarColor(sensor.level ?? 0)}`}
+                                                                                style={{ width: getBarWidthByLevel(sensor.level ?? 0) }}
+                                                                            ></div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
-                                                    <div
-                                                        className={`h-1.5 rounded-full ${(currentStation.airQuality.uv || 0) >= 8 ? 'bg-red-500' :
-                                                            (currentStation.airQuality.uv || 0) >= 6 ? 'bg-yellow-500' :
-                                                                'bg-blue-500'
-                                                            }`}
-                                                        style={{ width: `${Math.min((currentStation.airQuality.uv || 0) / 11 * 100, 100)}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* PM1.0 Card - Compact */}
-                                    <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-md p-2.5 border-l-3 border-l-green-500">
-                                        <div className="flex items-center space-x-2.5">
-                                            <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                    <circle cx="5" cy="5" r="2" />
-                                                    <circle cx="12" cy="3" r="1.5" />
-                                                    <circle cx="19" cy="6" r="2" />
-                                                    <circle cx="3" cy="12" r="1.5" />
-                                                    <circle cx="9" cy="9" r="2" />
-                                                    <circle cx="16" cy="11" r="1.5" />
-                                                    <circle cx="7" cy="16" r="1.5" />
-                                                    <circle cx="14" cy="19" r="2" />
-                                                    <circle cx="21" cy="15" r="1.5" />
-                                                    <circle cx="11" cy="17" r="1" />
-                                                </svg>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <h4 className="text-sm font-medium text-gray-900">PM1.0</h4>
-                                                    <div className="flex items-center space-x-1">
-                                                        <span className="text-base font-bold text-gray-900">
-                                                            {currentStation.airQuality.pm1_0?.toFixed(1) || '-'}
-                                                        </span>
-                                                        <span className="text-xs text-gray-500">μg/m³</span>
-                                                        <div className="flex items-center space-x-0.5">
-                                                            <svg className={`w-2.5 h-2.5 ${currentStation.airQuality.pm1_0Trend && currentStation.airQuality.pm1_0Trend > 0 ? 'text-red-500' : 'text-green-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={currentStation.airQuality.pm1_0Trend && currentStation.airQuality.pm1_0Trend > 0 ? "M17 7l-9.2 9.2M7 7v10M7 7h10" : "M7 17l9.2-9.2M17 17V7M17 17H7"} />
-                                                            </svg>
-                                                            <span className={`text-xs ${currentStation.airQuality.pm1_0Trend && currentStation.airQuality.pm1_0Trend > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                                                                {currentStation.airQuality.pm1_0Trend ? `${Math.abs(currentStation.airQuality.pm1_0Trend).toFixed(1)}%` : '-'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
-                                                    <div
-                                                        className={`h-1.5 rounded-full ${(currentStation.airQuality.pm1_0 || 0) >= 50 ? 'bg-red-500' :
-                                                            (currentStation.airQuality.pm1_0 || 0) >= 25 ? 'bg-yellow-500' :
-                                                                'bg-green-500'
-                                                            }`}
-                                                        style={{ width: `${Math.min((currentStation.airQuality.pm1_0 || 0) / 100 * 100, 100)}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* PM2.5 Card - Compact */}
-                                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-md p-2.5 border-l-3 border-l-orange-500">
-                                        <div className="flex items-center space-x-2.5">
-                                            <div className="w-7 h-7 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                    <circle cx="6" cy="6" r="1.5" />
-                                                    <circle cx="12" cy="4" r="1" />
-                                                    <circle cx="18" cy="7" r="1.5" />
-                                                    <circle cx="4" cy="12" r="1" />
-                                                    <circle cx="10" cy="10" r="1.5" />
-                                                    <circle cx="16" cy="12" r="1" />
-                                                    <circle cx="8" cy="16" r="1" />
-                                                    <circle cx="14" cy="18" r="1.5" />
-                                                    <circle cx="20" cy="16" r="1" />
-                                                </svg>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <h4 className="text-sm font-medium text-gray-900">PM2.5</h4>
-                                                    <div className="flex items-center space-x-1">
-                                                        <span className="text-base font-bold text-gray-900">
-                                                            {currentStation.airQuality.pm25?.toFixed(1) || '-'}
-                                                        </span>
-                                                        <span className="text-xs text-gray-500">μg/m³</span>
-                                                        <div className="flex items-center space-x-0.5">
-                                                            <svg className={`w-2.5 h-2.5 ${currentStation.airQuality.pm25Trend && currentStation.airQuality.pm25Trend > 0 ? 'text-red-500' : 'text-green-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={currentStation.airQuality.pm25Trend && currentStation.airQuality.pm25Trend > 0 ? "M17 7l-9.2 9.2M7 7v10M7 7h10" : "M7 17l9.2-9.2M17 17V7M17 17H7"} />
-                                                            </svg>
-                                                            <span className={`text-xs ${currentStation.airQuality.pm25Trend && currentStation.airQuality.pm25Trend > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                                                                {currentStation.airQuality.pm25Trend ? `${Math.abs(currentStation.airQuality.pm25Trend).toFixed(1)}%` : '-'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
-                                                    <div
-                                                        className={`h-1.5 rounded-full ${(currentStation.airQuality.pm25 || 0) >= 35 ? 'bg-red-500' :
-                                                            (currentStation.airQuality.pm25 || 0) >= 15 ? 'bg-yellow-500' :
-                                                                'bg-orange-500'
-                                                            }`}
-                                                        style={{ width: `${Math.min((currentStation.airQuality.pm25 || 0) / 55 * 100, 100)}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Pin Card */}
-                                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-md p-2.5 border-l-3 border-l-gray-400">
-                                        <div className="flex items-center space-x-2.5">
-                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${(currentStation.battery || 0) >= 60 ? 'bg-green-500' :
-                                                (currentStation.battery || 0) >= 30 ? 'bg-orange-500' :
-                                                    'bg-red-500'
-                                                }`}>
-                                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <rect x="3" y="7" width="15" height="10" rx="2" strokeWidth="2" />
-                                                    <rect x="18" y="10" width="2" height="4" rx="1" strokeWidth="2" />
-                                                    <rect x="5" y="9" width="11" height="6" rx="1" fill="white" />
-                                                </svg>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <h4 className="text-sm font-medium text-gray-900">Pin</h4>
-                                                    <span className="text-base font-bold text-gray-900">
-                                                        {currentStation.battery !== undefined ? `${currentStation.battery}%` : '--'}
-                                                    </span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
-                                                    <div
-                                                        className={`h-1.5 rounded-full ${(currentStation.battery || 0) >= 60 ? 'bg-green-500' :
-                                                            (currentStation.battery || 0) >= 30 ? 'bg-orange-500' :
-                                                                'bg-red-500'
-                                                            }`}
-                                                        style={{ width: `${Math.min((currentStation.battery || 0), 100)}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                                );
+                                            });
+                                    })()}
                                 </div>
                             </div>
                         )}

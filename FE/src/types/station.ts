@@ -1,20 +1,20 @@
+export interface SensorData {
+    id: number;
+    name: string;
+    value: number | null;
+    unit: string;
+    recordedAt: string;
+    level?: number | null;
+}
+
 export interface StationData {
     id: string;
     name: string;
     coordinates: { lat: number; lng: number };
-    airQuality: {
-        uv: number | null;
-        pm25: number | null;
-        pm1_0: number | null;
-        uvTrend?: number;
-        pm25Trend?: number;
-        pm1_0Trend?: number;
-    };
-    battery?: number;
+    sensors: SensorData[];
     status: 'online' | 'offline' | 'maintenance';
     lastUpdated?: string;
-    ipAddress?: string;
-    port?: number;
+    location?: string;
 }
 
 // Interface cho dữ liệu truyền vào biểu đồ thống kê

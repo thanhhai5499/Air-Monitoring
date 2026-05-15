@@ -1,32 +1,5 @@
 import React, { useState, useMemo } from 'react';
-
-export interface TableColumn {
-  key: string;
-  title: string;
-  width?: string;
-  align?: 'left' | 'center' | 'right';
-  render?: (value: any, record: any, index: number) => React.ReactNode;
-}
-
-export interface DataTableProps {
-  columns: TableColumn[];
-  data: any[];
-  loading?: boolean;
-  emptyText?: string;
-  className?: string;
-  showIndex?: boolean;
-  indexTitle?: string;
-  pagination?: {
-    pageSize?: number;
-    showSizeChanger?: boolean;
-    showTotal?: boolean;
-  };
-  exportButton?: {
-    show: boolean;
-    onExport: () => void;
-    text?: string;
-  };
-}
+import { TableColumn, DataTableProps } from '../types/components';
 
 const DataTable: React.FC<DataTableProps> = ({
   columns,
@@ -53,17 +26,17 @@ const DataTable: React.FC<DataTableProps> = ({
   useMemo(() => {
     setCurrentPage(1);
   }, [data.length]);
-  const finalColumns = showIndex 
+  const finalColumns = showIndex
     ? [
-        {
-          key: 'index',
-          title: indexTitle,
-          width: '60px',
-          align: 'center' as const,
-          render: (value: any, record: any, index: number) => startIndex + index + 1
-        },
-        ...columns
-      ]
+      {
+        key: 'index',
+        title: indexTitle,
+        width: '60px',
+        align: 'center' as const,
+        render: (value: any, record: any, index: number) => startIndex + index + 1
+      },
+      ...columns
+    ]
     : columns;
 
   if (loading) {
@@ -93,10 +66,9 @@ const DataTable: React.FC<DataTableProps> = ({
                 <th
                   key={column.key}
                   style={{ width: column.width }}
-                  className={`px-6 py-4 text-sm font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200 ${
-                    column.align === 'center' ? 'text-center' :
-                    column.align === 'right' ? 'text-right' : 'text-left'
-                  }`}
+                  className={`px-6 py-4 text-sm font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200 ${column.align === 'center' ? 'text-center' :
+                      column.align === 'right' ? 'text-right' : 'text-left'
+                    }`}
                 >
                   {column.title}
                 </th>
@@ -108,8 +80,8 @@ const DataTable: React.FC<DataTableProps> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {data.length === 0 ? (
               <tr>
-                <td 
-                  colSpan={finalColumns.length} 
+                <td
+                  colSpan={finalColumns.length}
                   className="px-4 py-12 text-center text-gray-500 text-sm"
                 >
                   <div className="flex flex-col items-center space-y-2">
@@ -126,10 +98,9 @@ const DataTable: React.FC<DataTableProps> = ({
                   {finalColumns.map((column) => (
                     <td
                       key={column.key}
-                      className={`px-6 py-4 text-sm text-gray-900 ${
-                        column.align === 'center' ? 'text-center' :
-                        column.align === 'right' ? 'text-right' : 'text-left'
-                      }`}
+                      className={`px-6 py-4 text-sm text-gray-900 ${column.align === 'center' ? 'text-center' :
+                          column.align === 'right' ? 'text-right' : 'text-left'
+                        }`}
                     >
                       {column.render
                         ? column.render(record[column.key], record, index)
@@ -193,60 +164,57 @@ const DataTable: React.FC<DataTableProps> = ({
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className={`px-3 py-1 text-sm rounded ${
-                  currentPage === 1
+                className={`px-3 py-1 text-sm rounded ${currentPage === 1
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
 
-            {/* Page numbers */}
-            {(() => {
-              const pages = [];
-              const maxVisible = 5;
-              let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-              let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-              
-              if (endPage - startPage + 1 < maxVisible) {
-                startPage = Math.max(1, endPage - maxVisible + 1);
-              }
+              {/* Page numbers */}
+              {(() => {
+                const pages = [];
+                const maxVisible = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
-              for (let i = startPage; i <= endPage; i++) {
-                pages.push(
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i)}
-                    className={`px-3 py-1 text-sm rounded ${
-                      i === currentPage
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    {i}
-                  </button>
-                );
-              }
-              return pages;
-            })()}
+                if (endPage - startPage + 1 < maxVisible) {
+                  startPage = Math.max(1, endPage - maxVisible + 1);
+                }
 
-            {/* Next button */}
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className={`px-3 py-1 text-sm rounded ${
-                currentPage === totalPages
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`px-3 py-1 text-sm rounded ${i === currentPage
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      {i}
+                    </button>
+                  );
+                }
+                return pages;
+              })()}
+
+              {/* Next button */}
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 text-sm rounded ${currentPage === totalPages
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
           )}
         </div>

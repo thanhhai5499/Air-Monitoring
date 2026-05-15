@@ -1,14 +1,15 @@
-version: '3.2'
+version: '3.3'
 
 services:
-  web:
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    command: npm run preview
     ports:
-      - "3001:3001"
+      - "3000:3000"
     restart: unless-stopped
+    environment:
+      - NODE_ENV=production
     networks:
       - app-network
 

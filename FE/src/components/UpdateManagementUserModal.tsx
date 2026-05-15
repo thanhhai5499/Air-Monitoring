@@ -3,17 +3,19 @@ import React, { useState, useEffect } from 'react';
 interface UpdateManagementUserModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onUpdate: (updates: { role: string; status: string }) => void;
-    user: { role: string; status: string };
+    onUpdate: (updates: { status: string }) => void;
+    user: { role: string; status: string; ValidFrom?: string; ValidTo?: string };
+    /** Khi true: đang active và chưa hết hạn → không cho chuyển sang inactive */
+    canChangeToInactive?: boolean;
 }
 
-const UpdateManagementUserModal: React.FC<UpdateManagementUserModalProps> = ({ isOpen, onClose, onUpdate, user }) => {
-    const [role, setRole] = useState(user.role);
-    const [status, setStatus] = useState(user.status);
+const UpdateManagementUserModal: React.FC<UpdateManagementUserModalProps> = ({ isOpen, onClose, onUpdate, user, canChangeToInactive = true }) => {
+    const [status, setStatus] = useState(
+        user.status.toLowerCase() === 'active' ? 'active' : 'inactive'
+    );
 
     useEffect(() => {
-        setRole(user.role);
-        setStatus(user.status);
+        setStatus(user.status.toLowerCase() === 'active' ? 'active' : 'inactive');
     }, [user]);
 
     if (!isOpen) {
@@ -21,28 +23,17 @@ const UpdateManagementUserModal: React.FC<UpdateManagementUserModalProps> = ({ i
     }
 
     const handleUpdate = () => {
-        onUpdate({ role, status });
+        onUpdate({ status });
         onClose();
     };
 
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
                 <div className="mt-3 text-center">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">Cập nhật tài khoản</h3>
 
                     <div className="mt-4 px-7 py-3 space-y-4">
-                        <div>
-                            <label className="text-left block text-sm font-medium text-gray-700 mb-1">Vai trò</label>
-                            <select
-                                value={role}
-                                onChange={(e) => setRole(e.target.value)}
-                                className="w-full px-3 py-2 text-base text-gray-700 placeholder-gray-600 border rounded-lg focus:shadow-outline"
-                            >
-                                <option value="Admin">Admin</option>
-                                <option value="Moderator">Moderator</option>
-                            </select>
-                        </div>
                         <div>
                             <label className="text-left block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
                             <select
@@ -50,10 +41,14 @@ const UpdateManagementUserModal: React.FC<UpdateManagementUserModalProps> = ({ i
                                 onChange={(e) => setStatus(e.target.value)}
                                 className="w-full px-3 py-2 text-base text-gray-700 placeholder-gray-600 border rounded-lg focus:shadow-outline"
                             >
-                                <option value="Active">Hoạt động</option>
-                                <option value="Inactive">Ngừng hoạt động</option>
-                                <option value="Pending">Chờ duyệt</option>
+                                <option value="active">Hoạt động</option>
+                                <option value="inactive" disabled={!canChangeToInactive}>
+                                    Ngừng hoạt động
+                                </option>
                             </select>
+                            {!canChangeToInactive && (
+                                <p className="mt-1 text-xs text-amber-600">Tài khoản đang hoạt động không thể chuyển sang ngừng hoạt động.</p>
+                            )}
                         </div>
                     </div>
 

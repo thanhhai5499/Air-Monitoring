@@ -4,39 +4,35 @@
 export interface LoginRequest {
     username: string;
     password: string;
-    rememberMe?: boolean;
+    role?: string; // Optional since role is determined by backend
 }
 
 // Response types
 export interface LoginResponse {
-    success: boolean;
-    message: string;
-    data?: {
-        token?: string;
-        user?: UserInfo;
-        expiresIn?: number;
-    };
-}
-
-export interface UserInfo {
-    id: string;
+    token: string;
     username: string;
-    email?: string;
     role: string;
-    displayName?: string;
 }
 
 // Auth state types
 export interface AuthState {
     isAuthenticated: boolean;
-    user: UserInfo | null;
+    user: {
+        id?: number;
+        username: string | null;
+        role: string;
+        fullName?: string;
+        email?: string;
+        avatar?: string | null;
+        organization?: string | null;
+        position?: string | null;
+        phone?: string | null;
+        lastLoginAt?: string | null;
+        ValidFrom?: string | null;
+        ValidTo?: string | null;
+        status?: string | null;
+    } | null;
     token: string | null;
-}
-
-// Error types
-export interface AuthError {
-    code: string;
-    message: string;
 }
 
 // Storage keys

@@ -5,13 +5,17 @@ interface DatePickerProps {
   onChange: (date: string) => void;
   placeholder?: string;
   label?: string;
+  minDate?: string; // Format: YYYY-MM-DD
 }
+
+const TIMEZONE = 'Asia/Ho_Chi_Minh';
 
 const DatePicker: React.FC<DatePickerProps> = ({
   value,
   onChange,
   placeholder = "mm/dd/yyyy",
-  label
+  label,
+  minDate
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -33,13 +37,18 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
   const formatDate = (date: string) => {
     if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleDateString('vi-VN');
+    // Hiển thị dd/MM/yyyy từ yyyy-MM-dd
+    const [year, month, day] = date.split('-');
+    if (year && month && day) return `${day}/${month}/${year}`;
+    return date;
   };
 
   const handleDateSelect = (day: number) => {
-    const selectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    const dateString = selectedDate.toISOString().split('T')[0];
+    // Tạo ngày local, format yyyy-MM-dd (không dùng toISOString)
+    const y = currentMonth.getFullYear();
+    const m = currentMonth.getMonth() + 1;
+    const d = day;
+    const dateString = `${y}-${m.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
     onChange(dateString);
     setIsOpen(false);
   };
@@ -53,12 +62,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
     const startingDayOfWeek = firstDay.getDay();
 
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    
+
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(day);
@@ -103,7 +112,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
       )}
-      
+
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm h-[36px] text-left flex items-center"
@@ -115,18 +124,18 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
       {label && (
         <svg className="absolute left-3 bottom-[10px] w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth="2"/>
-          <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2"/>
-          <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2"/>
-          <line x1="3" y1="10" x2="21" y2="10" strokeWidth="2"/>
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth="2" />
+          <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2" />
+          <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2" />
+          <line x1="3" y1="10" x2="21" y2="10" strokeWidth="2" />
         </svg>
       )}
       {!label && (
         <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth="2"/>
-          <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2"/>
-          <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2"/>
-          <line x1="3" y1="10" x2="21" y2="10" strokeWidth="2"/>
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth="2" />
+          <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2" />
+          <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2" />
+          <line x1="3" y1="10" x2="21" y2="10" strokeWidth="2" />
         </svg>
       )}
 
@@ -143,11 +152,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            
+
             <h3 className="text-lg font-semibold text-gray-900">
               {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
             </h3>
-            
+
             <button
               onClick={() => navigateMonth('next')}
               className="p-1 rounded-md hover:bg-gray-100 transition-colors"
@@ -171,21 +180,34 @@ const DatePicker: React.FC<DatePickerProps> = ({
           <div className="grid grid-cols-7 gap-1">
             {getDaysInMonth().map((day, index) => {
               const isSelected = day === getSelectedDay();
-              const isToday = day && 
+              const isToday = day &&
                 new Date().getDate() === day &&
                 new Date().getMonth() === currentMonth.getMonth() &&
                 new Date().getFullYear() === currentMonth.getFullYear();
 
+              // Kiểm tra nếu ngày này nhỏ hơn minDate thì disable
+              let isDisabled = !day;
+              if (day && minDate) {
+                const currentDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                const minDateObj = new Date(minDate);
+                minDateObj.setHours(0, 0, 0, 0);
+                currentDate.setHours(0, 0, 0, 0);
+                if (currentDate < minDateObj) {
+                  isDisabled = true;
+                }
+              }
+
               return (
                 <button
                   key={index}
-                  onClick={() => day && handleDateSelect(day)}
-                  disabled={!day}
+                  onClick={() => day && !isDisabled && handleDateSelect(day)}
+                  disabled={isDisabled}
                   className={`
                     w-8 h-8 text-sm rounded-full transition-colors
                     ${!day ? 'invisible' : ''}
-                    ${isSelected 
-                      ? 'bg-blue-500 text-white font-semibold' 
+                    ${isDisabled && day ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : ''}
+                    ${isSelected
+                      ? 'bg-blue-500 text-white font-semibold'
                       : isToday
                         ? 'bg-blue-100 text-blue-600 font-semibold'
                         : 'text-gray-700 hover:bg-gray-100'

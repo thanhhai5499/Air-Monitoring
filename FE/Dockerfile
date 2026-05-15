@@ -4,31 +4,34 @@ FROM node:20-alpine as build
 # Set working directory
 WORKDIR /app
 
-# Cài bash để tránh lỗi shell
-RUN apk add --no-cache bash
-
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
 
-# Copy toàn bộ source code
+# Copy source code
 COPY . .
 
-# Fix permission cho toàn bộ .bin sau khi đã copy code
-RUN chmod -R 755 node_modules/.bin
-
-# Build the app (dùng bash để chắc chắn không lỗi shell)
-RUN /bin/bash -c "npm run build"
+# Build the app
+RUN npm run build
 
 # Production stage
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY --from=build /app .
+# Copy package files
+COPY package*.json ./
 
-EXPOSE 3001
+# Install only production dependencies
+RUN npm ci --only=production
 
-CMD ["npm", "run", "preview"] 
+# Copy built files from build stage
+COPY --from=build /app/dist ./dist
+
+# Expose port 3000
+EXPOSE 3000
+
+# Start the app with vite preview
+CMD ["npx", "serve", "-s", "dist", "-l", "3000"] 

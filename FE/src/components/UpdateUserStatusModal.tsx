@@ -8,10 +8,10 @@ interface UpdateUserStatusModalProps {
 }
 
 const UpdateUserStatusModal: React.FC<UpdateUserStatusModalProps> = ({ isOpen, onClose, onUpdateStatus, currentStatus }) => {
-    const [selectedStatus, setSelectedStatus] = React.useState(currentStatus);
+    const [selectedStatus, setSelectedStatus] = React.useState(currentStatus.toLowerCase());
 
     React.useEffect(() => {
-        setSelectedStatus(currentStatus);
+        setSelectedStatus(currentStatus.toLowerCase());
     }, [currentStatus]);
 
     if (!isOpen) {
@@ -34,8 +34,8 @@ const UpdateUserStatusModal: React.FC<UpdateUserStatusModalProps> = ({ isOpen, o
                             onChange={(e) => setSelectedStatus(e.target.value)}
                             className="w-full px-3 py-2 text-base text-gray-700 placeholder-gray-600 border rounded-lg focus:shadow-outline"
                         >
-                            <option value="Active">Hoạt động</option>
-                            <option value="Inactive">Ngừng hoạt động</option>
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Ngừng hoạt động</option>
                         </select>
                     </div>
                     <div className="items-center px-4 py-3">
