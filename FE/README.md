@@ -1,4 +1,33 @@
-# Getting Started with Create React App
+# Air Monitoring Frontend
+
+Frontend dung React + Vite. Khi deploy bang Docker, app duoc build thanh static files va phuc vu bang Nginx o container port `80`.
+
+Root `docker-compose.yml` map host port:
+
+```yaml
+ports:
+  - "3000:80"
+```
+
+API nen dung same-origin path qua Nginx reverse proxy:
+
+```env
+VITE_API_BASE_URL_AUTH=/api/auth
+VITE_API_BASE_URL_USER=/api/user
+VITE_API_BASE_URL_DATA=/api/data
+VITE_API_BASE_URL_STATION=/api/station
+VITE_API_BASE_URL_STATISTICS=/api/statistic
+VITE_API_BASE_URL_REPORT=/api/report
+```
+
+Chay rieng frontend:
+
+```bash
+docker compose up -d --build
+curl http://localhost:3000
+```
+
+## Legacy Notes
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

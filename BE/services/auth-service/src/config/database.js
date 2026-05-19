@@ -1,26 +1,14 @@
 const sql = require('mssql');
 const path = require('path');
-const fs = require('fs');
-
-// Load environment variables
-const envPath = path.join(__dirname, '../../config.env');
-const envContent = fs.readFileSync(envPath, 'utf8');
-const envVars = {};
-
-envContent.split('\n').forEach(line => {
-    const [key, value] = line.split('=');
-    if (key && value && !key.startsWith('#')) {
-        envVars[key.trim()] = value.trim();
-    }
-});
+require('dotenv').config({ path: path.join(__dirname, '../../config.env') });
 
 // SQL Server configuration
 const dbConfig = {
-    server: envVars.DB_SERVER || '27.71.25.65',
-    port: parseInt(envVars.DB_PORT) || 1433,
-    database: envVars.DB_NAME || 'AirMonitoring',
-    user: envVars.DB_USER || 'sa',
-    password: envVars.DB_PASSWORD || 'itDYMB0RZrLyXka',
+    server: process.env.DB_SERVER,
+    port: parseInt(process.env.DB_PORT, 10) || 1433,
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
     options: {
         encrypt: false, // For Azure use true
         trustServerCertificate: true, // For local dev / self-signed certs

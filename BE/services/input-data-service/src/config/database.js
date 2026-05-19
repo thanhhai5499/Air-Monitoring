@@ -16,7 +16,7 @@ envContent.split('\n').forEach(line => {
 
 // SQL Server configuration
 const dbConfig = {
-    server: envVars.DB_SERVER || '27.71.25.65',
+    server: envVars.DB_SERVER || '100.82.249.100',
     port: parseInt(envVars.DB_PORT) || 1433,
     database: envVars.DB_NAME || 'AirMonitoring',
     user: envVars.DB_USER || 'sa',
@@ -78,4 +78,4 @@ module.exports = {
     getPool,
     closeDB,
     sql
-}; 
+};

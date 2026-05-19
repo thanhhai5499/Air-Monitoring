@@ -1,15 +1,20 @@
-version: '3.3'
-
+# FE compose - runs the Nginx+SPA container only.
+# BE services are deployed in a separate compose (BE/docker-compose.yml).
+# The Nginx in this container reverse-proxies /api/* through host.docker.internal
+# to BE ports 5001-5007 on the host.
 services:
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: aiot-frontend
     ports:
-      - "3000:3000"
+      - "3000:80"   # Cloudflare Tunnel ingress points here
+    # Required on Linux (IBM host) so nginx can resolve host.docker.internal
+    # to the Docker bridge gateway -> reach BE services on host ports.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
-    environment:
-      - NODE_ENV=production
     networks:
       - app-network
 

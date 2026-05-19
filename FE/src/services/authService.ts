@@ -23,7 +23,7 @@ export class AuthService {
     // Login method
     async login(request: LoginRequest): Promise<LoginResponse & { message?: string }> {
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_AUTH || 'http://localhost:5001';
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_AUTH || '/api/auth';
             // Gọi API đăng nhập microservice
             const response = await fetch(`${API_BASE_URL}/login`, {
                 method: 'POST',
@@ -84,7 +84,7 @@ export class AuthService {
     // Login Google method (legacy - use loginGoogleOAuth instead)
     async loginGoogle(request: { email: string; fullName: string; googleId: string; avatar?: string }): Promise<LoginResponse> {
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_AUTH || 'http://localhost:5001';
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_AUTH || '/api/auth';
             const response = await fetch(`${API_BASE_URL}/google-oauth`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -132,7 +132,7 @@ export class AuthService {
     // Đăng nhập Google thực tế với id_token
     async loginGoogleOAuth(idToken: string): Promise<LoginResponse & { message?: string }> {
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_AUTH || 'http://localhost:5001';
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_AUTH || '/api/auth';
             const response = await fetch(`${API_BASE_URL}/google-oauth`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -305,7 +305,7 @@ export class AuthService {
     // Đổi mật khẩu (chỉ cho admin, manager)
     async changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
             const token = this.getToken();
             const response = await fetch(`${API_BASE_URL}/change-password`, {
                 method: 'POST',

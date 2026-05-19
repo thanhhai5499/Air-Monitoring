@@ -58,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({
     useEffect(() => {
         if (userInfoModalOpen) {
             const token = authService.getToken();
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
             fetch(`${API_BASE_URL}/profile`, {
                 method: 'GET',
                 headers: {
@@ -117,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({
         phone?: string;
     }) => {
         const token = authService.getToken();
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
         const res = await fetch(`${API_BASE_URL}/profile`, {
             method: 'PUT',
             headers: {

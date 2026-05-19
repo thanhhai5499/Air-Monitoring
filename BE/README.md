@@ -201,6 +201,44 @@ CORS_ORIGIN=http://localhost:3000
 LOG_LEVEL=info
 ```
 
+## Deploy with Docker on IBM test server
+
+Recommended deployment is from the repository root:
+
+```bash
+cp .env.example .env
+nano .env
+docker compose up -d --build
+curl http://localhost:3000
+```
+
+The root compose file runs all backend services on an internal Docker network and exposes only the frontend/Nginx gateway on host port `3000`.
+
+To run backend services only from this `BE` folder:
+
+```bash
+cd BE
+docker compose up -d --build
+```
+
+This backend-only compose reads environment variables from `../.env`.
+
+Required variables:
+
+```env
+DB_SERVER=your_sql_server_host_or_ip
+DB_PORT=1433
+DB_NAME=AirMonitoring
+DB_USER=your_db_user
+DB_PASSWORD=change_this_password
+JWT_SECRET=change_this_to_a_long_random_secret
+JWT_EXPIRES_IN=24h
+CORS_ORIGIN=https://app.aiot-shtplabs.com,http://localhost:3000
+DATA_API_KEY=change_this_api_key
+```
+
+Inside Docker, do not use `localhost` for SQL Server unless SQL Server is in the same container. Use a reachable host IP, LAN IP, Tailscale IP, or a database container service name.
+
 ## 🚀 Deployment
 
 ### Development

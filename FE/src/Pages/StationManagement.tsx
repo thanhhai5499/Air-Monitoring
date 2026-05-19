@@ -13,7 +13,7 @@ import { StationFormData, DetailedStationData } from '../types/pages';
 import { formatExactApiTime } from '../utils/dateUtils';
 
 // Thêm khai báo base URL cho station service
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
 
 const StationManagement: React.FC = () => {
     const [stations, setStations] = useState<DetailedStationData[]>([]);

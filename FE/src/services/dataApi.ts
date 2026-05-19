@@ -1,12 +1,12 @@
 import { authService, AuthService } from './authService';
 
 // ==== USER SERVICE APIs (ADMIN ONLY) ====
-let API_BASE_URL_USER = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+let API_BASE_URL_USER = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
 
 // Lấy dữ liệu trung bình các sensor từ 3 trạm trong ngày hiện tại
 export const fetchAverageDayData = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || 'http://localhost:5004';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || '/api/data';
     const response = await fetch(`${API_BASE_URL}/average-day`, {
         method: 'GET',
         headers: {
@@ -23,7 +23,7 @@ export const fetchAverageDayData = async () => {
 
 export async function fetchSensorLatestData() {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || 'http://localhost:5004';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || '/api/data';
     const res = await fetch(`${API_BASE_URL}/sensor-latest`, {
         headers: {
             'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export async function fetchSensorLatestData() {
 
 export const fetchStationsList = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     const response = await fetch(`${API_BASE_URL}/list`, {
         method: 'GET',
         headers: {
@@ -57,7 +57,7 @@ export const fetchStationsList = async () => {
 // Lấy danh sách trạm chi tiết với thông tin sensors và dữ liệu cập nhật gần nhất
 export const fetchStationsDetailedList = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     const response = await fetch(`${API_BASE_URL}/detailed-list`, {
         method: 'GET',
         headers: {
@@ -76,7 +76,7 @@ export const fetchStationsDetailedList = async () => {
 // Lấy thông tin chi tiết của một trạm cụ thể
 export const fetchStationDetails = async (stationId: string | number) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     const response = await fetch(`${API_BASE_URL}/${stationId}`, {
         method: 'GET',
         headers: {
@@ -94,7 +94,7 @@ export const fetchStationDetails = async (stationId: string | number) => {
 
 export const fetchStationDailyStatistics = async (stationId: string) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATISTICS || 'http://localhost:5007';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATISTICS || '/api/statistic';
     const response = await fetch(`${API_BASE_URL}/daily?stationId=${stationId}`, {
         method: 'GET',
         headers: {
@@ -112,7 +112,7 @@ export const fetchStationDailyStatistics = async (stationId: string) => {
 
 export const fetchStationMonthlyStatistics = async (stationId: string, year?: number) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATISTICS || 'http://localhost:5007';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATISTICS || '/api/statistic';
     const yearParam = year !== undefined ? `&year=${year}` : '';
     const response = await fetch(`${API_BASE_URL}/monthly?stationId=${stationId}${yearParam}`, {
         method: 'GET',
@@ -131,7 +131,7 @@ export const fetchStationMonthlyStatistics = async (stationId: string, year?: nu
 
 export const fetchStationSensors = async (stationId?: string | number) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_REPORT || 'http://localhost:5005';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_REPORT || '/api/report';
     let url = `${API_BASE_URL}/station-sensors`;
     if (stationId) {
         url += `?stationId=${stationId}`;
@@ -159,7 +159,7 @@ export const fetchReportFilter = async (params: {
     viewType: string
 }) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_REPORT || 'http://localhost:5005';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_REPORT || '/api/report';
     const response = await fetch(`${API_BASE_URL}/filter`, {
         method: 'POST',
         headers: {
@@ -179,7 +179,7 @@ export const fetchReportFilter = async (params: {
 // Lấy danh sách các loại sensor (sensor types)
 export const fetchSensorTypes = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_REPORT || 'http://localhost:5005';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_REPORT || '/api/report';
     const response = await fetch(`${API_BASE_URL}/sensor-types`, {
         method: 'GET',
         headers: {
@@ -197,7 +197,7 @@ export const fetchSensorTypes = async () => {
 
 export const fetchSensorThresholds = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     const response = await fetch(`${API_BASE_URL}/sensor-thresholds`, {
         method: 'GET',
         headers: {
@@ -216,7 +216,7 @@ export const fetchSensorThresholds = async () => {
 // Thêm sensor (SensorType)
 export const createSensor = async (data: { name: string; description?: string; unit: string }) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     const response = await fetch(`${API_BASE_URL}/sensor`, {
         method: 'POST',
         headers: {
@@ -236,7 +236,7 @@ export const createSensor = async (data: { name: string; description?: string; u
 // Cập nhật sensor (SensorType)
 export const updateSensor = async (id: number, data: { name: string; description?: string; unit: string }) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     const response = await fetch(`${API_BASE_URL}/sensor/${id}`, {
         method: 'PUT',
         headers: {
@@ -256,7 +256,7 @@ export const updateSensor = async (id: number, data: { name: string; description
 // Thêm sensor threshold
 export const createSensorThreshold = async (data: { sensorTypeId: number; level: number; minValue: number; maxValue?: number | null; color: string; description?: string }) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     const response = await fetch(`${API_BASE_URL}/sensor-threshold`, {
         method: 'POST',
         headers: {
@@ -276,7 +276,7 @@ export const createSensorThreshold = async (data: { sensorTypeId: number; level:
 // Cập nhật sensor threshold
 export const updateSensorThreshold = async (id: number, data: { sensorTypeId: number; level: number; minValue: number; maxValue?: number | null; color: string; description?: string }) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     const response = await fetch(`${API_BASE_URL}/sensor-threshold/${id}`, {
         method: 'PUT',
         headers: {
@@ -295,7 +295,7 @@ export const updateSensorThreshold = async (id: number, data: { sensorTypeId: nu
 
 export const fetchManagers = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
     const response = await fetch(`${API_BASE_URL}/managers`, {
         method: 'GET',
         headers: {
@@ -311,7 +311,7 @@ export const fetchManagers = async () => {
 
 export const fetchGoogleUsers = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
     const response = await fetch(`${API_BASE_URL}/google`, {
         method: 'GET',
         headers: {
@@ -327,7 +327,7 @@ export const fetchGoogleUsers = async () => {
 
 export const updateUserStatus = async (id: number | string, status: 'active' | 'inactive') => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
     const response = await fetch(`${API_BASE_URL}/${id}/status`, {
         method: 'PUT',
         headers: {
@@ -348,7 +348,7 @@ export const submitExtensionRequest = async (description: string, requestedValid
     if (!token) {
         throw new Error('Bạn cần đăng nhập để gửi yêu cầu gia hạn');
     }
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
     const response = await fetch(`${API_BASE_URL}/extension-requests`, {
         method: 'POST',
         headers: {
@@ -372,7 +372,7 @@ export const submitExtensionRequest = async (description: string, requestedValid
 // Admin xem danh sách yêu cầu gia hạn
 export const getExtensionRequests = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
     const response = await fetch(`${API_BASE_URL}/extension-requests`, {
         method: 'GET',
         headers: {
@@ -389,7 +389,7 @@ export const getExtensionRequests = async () => {
 // Admin approve yêu cầu gia hạn
 export const approveExtensionRequest = async (requestId: number, adminResponse?: string, approvedValidFrom?: string, approvedValidTo?: string) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
     const response = await fetch(`${API_BASE_URL}/extension-requests/${requestId}/approve`, {
         method: 'PUT',
         headers: {
@@ -414,7 +414,7 @@ export const approveExtensionRequest = async (requestId: number, adminResponse?:
 // Admin reject yêu cầu gia hạn
 export const rejectExtensionRequest = async (requestId: number, adminResponse?: string) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
     const response = await fetch(`${API_BASE_URL}/extension-requests/${requestId}/reject`, {
         method: 'PUT',
         headers: {
@@ -439,7 +439,7 @@ export const rejectExtensionRequest = async (requestId: number, adminResponse?: 
 // Manager xem lịch sử yêu cầu gia hạn của mình
 export const getMyExtensionRequests = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:5002';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || '/api/user';
     const response = await fetch(`${API_BASE_URL}/extension-requests/my-requests`, {
         method: 'GET',
         headers: {
@@ -456,7 +456,7 @@ export const getMyExtensionRequests = async () => {
 // ==== NEWS APIs ====
 export const fetchNewsList = async () => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || 'http://localhost:5004';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || '/api/data';
     const response = await fetch(`${API_BASE_URL}/news`, {
         method: 'GET',
         headers: {
@@ -472,7 +472,7 @@ export const fetchNewsList = async () => {
 
 export const createNews = async (news: { title: string; summary?: string; content: string; image?: string }) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || 'http://localhost:5004';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || '/api/data';
     const response = await fetch(`${API_BASE_URL}/news`, {
         method: 'POST',
         headers: {
@@ -488,7 +488,7 @@ export const createNews = async (news: { title: string; summary?: string; conten
 
 export const updateNews = async (id: number, news: { title: string; summary?: string; content: string; image?: string }) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || 'http://localhost:5004';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || '/api/data';
     const response = await fetch(`${API_BASE_URL}/news/${id}`, {
         method: 'PUT',
         headers: {
@@ -504,7 +504,7 @@ export const updateNews = async (id: number, news: { title: string; summary?: st
 
 export const deleteNews = async (id: number) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || 'http://localhost:5004';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || '/api/data';
     const response = await fetch(`${API_BASE_URL}/news/${id}`, {
         method: 'DELETE',
         headers: {
@@ -521,7 +521,7 @@ export const deleteNews = async (id: number) => {
 export const uploadNewsImage = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || 'http://localhost:5004';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DATA || '/api/data';
     const response = await fetch(`${API_BASE_URL}/image`, {
         method: 'POST',
         body: formData
@@ -534,7 +534,7 @@ export const uploadNewsImage = async (file: File): Promise<string> => {
 // Thêm mới trạm (Station)
 export const createStation = async (data: any) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     // Đảm bảo luôn có dấu / ở cuối để tránh lỗi redirect 301
     const url = API_BASE_URL.endsWith('/') ? API_BASE_URL : API_BASE_URL + '/';
     const response = await fetch(url, {
@@ -575,7 +575,7 @@ export const createStation = async (data: any) => {
 // Cập nhật trạm (Station)
 export const updateStation = async (id: number | string, data: any) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || 'http://localhost:5006';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATION || '/api/station';
     const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'PUT',
         headers: {
@@ -616,7 +616,7 @@ export const updateStation = async (id: number | string, data: any) => {
 // Lấy dữ liệu theo giờ (Heat Map)
 export const fetchHourlyStatistics = async (stationId: string | number, sensorType: string = 'PM2.5', days: number = 7) => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATISTICS || 'http://localhost:5007';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATISTICS || '/api/statistic';
     const response = await fetch(`${API_BASE_URL}/hourly?stationId=${stationId}&sensorType=${sensorType}&days=${days}`, {
         method: 'GET',
         headers: {
@@ -635,7 +635,7 @@ export const fetchHourlyStatistics = async (stationId: string | number, sensorTy
 // Lấy phân bố mức độ chất lượng (Doughnut Chart)
 export const fetchDistribution = async (stationId: string | number, sensorType: string = 'PM2.5', period: string = 'month') => {
     const token = authService.getToken();
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATISTICS || 'http://localhost:5007';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_STATISTICS || '/api/statistic';
     const response = await fetch(`${API_BASE_URL}/distribution?stationId=${stationId}&sensorType=${sensorType}&period=${period}`, {
         method: 'GET',
         headers: {

@@ -19,7 +19,7 @@ export default defineConfig({
         strictPort: true,
         proxy: {
             '/api': {
-                target: 'https://admin.aiot-shtplabs.com',
+                target: 'https://app.aiot-shtplabs.com',
                 changeOrigin: true,
                 secure: false,
             },
@@ -30,7 +30,7 @@ export default defineConfig({
         port: 3000,
         strictPort: true,
         cors: true,
-        allowedHosts: ['aiot-shtplabs.com', 'www.aiot-shtplabs.com'],
+        allowedHosts: ['app.aiot-shtplabs.com'],
         headers: {
             'Cache-Control': 'max-age=31536000',
         }

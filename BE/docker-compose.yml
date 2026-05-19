@@ -1,16 +1,13 @@
-version: '3.3'
 services:
   auth-service:
     build: ./services/auth-service
     ports:
       - "5001:5001"
     env_file:
-      - ./services/auth-service/config.env
+      - path: ../.env
+        required: false
     environment:
-      - PORT=5001
-      - DB_SERVER=host.docker.internal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      PORT: 5001
     restart: unless-stopped
 
   user-service:
@@ -18,12 +15,10 @@ services:
     ports:
       - "5002:5002"
     env_file:
-      - ./services/user-service/config.env
+      - path: ../.env
+        required: false
     environment:
-      - PORT=5002
-      - DB_SERVER=host.docker.internal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      PORT: 5002
     restart: unless-stopped
 
   input-data-service:
@@ -31,23 +26,20 @@ services:
     ports:
       - "5003:5003"
     env_file:
-      - ./services/input-data-service/config.env
+      - path: ../.env
+        required: false
     environment:
-      - PORT=5003
-      - DB_SERVER=host.docker.internal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      PORT: 5003
     restart: unless-stopped
 
   input-data-statistics-job:
     build: ./services/input-data-service
     command: node src/statisticsJob.js
     env_file:
-      - ./services/input-data-service/config.env
-    environment:
-      - DB_SERVER=host.docker.internal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - path: ../.env
+        required: false
+    depends_on:
+      - input-data-service
     restart: unless-stopped
 
   data-service:
@@ -55,12 +47,10 @@ services:
     ports:
       - "5004:5004"
     env_file:
-      - ./services/data-service/config.env
+      - path: ../.env
+        required: false
     environment:
-      - PORT=5004
-      - DB_SERVER=host.docker.internal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      PORT: 5004
     restart: unless-stopped
     volumes:
       - ./services/data-service/uploads:/app/uploads
@@ -70,12 +60,10 @@ services:
     ports:
       - "5005:5005"
     env_file:
-      - ./services/report-service/config.env
+      - path: ../.env
+        required: false
     environment:
-      - PORT=5005
-      - DB_SERVER=host.docker.internal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      PORT: 5005
     restart: unless-stopped
 
   station-service:
@@ -83,12 +71,10 @@ services:
     ports:
       - "5006:5006"
     env_file:
-      - ./services/station-service/config.env
+      - path: ../.env
+        required: false
     environment:
-      - PORT=5006
-      - DB_SERVER=host.docker.internal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      PORT: 5006
     restart: unless-stopped
 
   statistics-service:
@@ -96,10 +82,8 @@ services:
     ports:
       - "5007:5007"
     env_file:
-      - ./services/statistics-service/config.env
+      - path: ../.env
+        required: false
     environment:
-      - PORT=5007
-      - DB_SERVER=host.docker.internal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      PORT: 5007
     restart: unless-stopped

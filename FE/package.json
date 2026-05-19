@@ -28,7 +28,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "serve:prod": "serve -s dist -l 3000",
-    "build:docker": "VITE_API_BASE_URL_AUTH=http://be-auth-service:5001 vite build"
+    "build:docker": "vite build"
   },
   "browserslist": {
     "production": [

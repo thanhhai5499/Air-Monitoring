@@ -1,37 +1,18 @@
-# Build stage
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-
-# Install all dependencies (including devDependencies for build)
 RUN npm ci
 
-# Copy source code
 COPY . .
-
-# Build the app
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+FROM nginx:1.27-alpine
 
-WORKDIR /app
+COPY proxy-headers.conf /etc/nginx/conf.d/proxy-headers.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production
-
-# Copy built files from build stage
-COPY --from=build /app/dist ./dist
-
-# Expose port 3000
-EXPOSE 3000
-
-# Start the app with vite preview
-CMD ["npx", "serve", "-s", "dist", "-l", "3000"] 
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
