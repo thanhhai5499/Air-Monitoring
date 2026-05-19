@@ -6,6 +6,9 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+# .env is gitignored & dockerignored; use the Docker-specific template so Vite
+# inlines VITE_API_BASE_URL_* into the bundle at build time.
+COPY env.docker.template .env
 RUN npm run build
 
 FROM nginx:1.27-alpine
