@@ -2,25 +2,28 @@ const sql = require('mssql');
 const path = require('path');
 const fs = require('fs');
 
-// Load environment variables
+// Load environment variables: prefer config.env (local dev), fall back to process.env (Docker env_file)
 const envPath = path.join(__dirname, '../../config.env');
-const envContent = fs.readFileSync(envPath, 'utf8');
 const envVars = {};
-
-envContent.split('\n').forEach(line => {
-    const [key, value] = line.split('=');
-    if (key && value && !key.startsWith('#')) {
-        envVars[key.trim()] = value.trim();
-    }
-});
+try {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+        const [key, value] = line.split('=');
+        if (key && value && !key.startsWith('#')) {
+            envVars[key.trim()] = value.trim();
+        }
+    });
+} catch (_) {
+    // config.env not present — running in Docker; rely on process.env injected by env_file
+}
 
 // SQL Server configuration
 const dbConfig = {
-    server: envVars.DB_SERVER || '100.82.249.100',
-    port: parseInt(envVars.DB_PORT) || 1433,
-    database: envVars.DB_NAME || 'AirMonitoring',
-    user: envVars.DB_USER || 'sa',
-    password: envVars.DB_PASSWORD || 'itDYMB0RZrLyXka',
+    server: envVars.DB_SERVER || process.env.DB_SERVER || '100.82.249.100',
+    port: parseInt(envVars.DB_PORT || process.env.DB_PORT, 10) || 1433,
+    database: envVars.DB_NAME || process.env.DB_NAME || 'AirMonitoring',
+    user: envVars.DB_USER || process.env.DB_USER || 'sa',
+    password: envVars.DB_PASSWORD || process.env.DB_PASSWORD || 'itDYMB0RZrLyXka',
     options: {
         encrypt: false, // For Azure use true
         trustServerCertificate: true, // For local dev / self-signed certs
